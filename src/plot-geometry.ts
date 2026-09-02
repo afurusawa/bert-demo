@@ -150,7 +150,6 @@ export function buildContourPath(
   confidenceValues: number[],
   phaseSteps: number,
   thresholdSteps: number,
-  targetBer = EYE_TARGET_BER,
 ): string {
   const segments: string[] = [];
 
@@ -170,7 +169,7 @@ export function buildContourPath(
         confidenceValues[index + phaseSteps],
       ];
 
-      appendMarchingSquare(segments, points, values, targetBer);
+      appendMarchingSquare(segments, points, values, EYE_TARGET_BER);
     }
   }
 

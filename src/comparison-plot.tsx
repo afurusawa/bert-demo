@@ -86,7 +86,7 @@ function buildCellMarkerPath(
 
 function buildComparisonPlotData(baseline: ScanRun, later: ScanRun): ComparisonPlotData {
   const { phase, threshold, bitsTested } = baseline.sweep;
-  const phaseUi = 1_000 / baseline.dataRateGbps;
+  const unitIntervalPs = 1_000 / baseline.dataRateGbps;
   const cells: ComparisonPlotCell[] = [];
   const baselineUpperBounds: number[] = [];
   const laterUpperBounds: number[] = [];
@@ -103,7 +103,7 @@ function buildComparisonPlotData(baseline: ScanRun, later: ScanRun): ComparisonP
         phaseIndex,
         thresholdIndex,
         phasePs: axisValue(phase, phaseIndex),
-        phaseUi: axisValue(phase, phaseIndex) / phaseUi,
+        phaseUi: axisValue(phase, phaseIndex) / unitIntervalPs,
         thresholdMv: axisValue(threshold, thresholdIndex),
         baselineErrors: baselineCell.errors,
         laterErrors: laterCell.errors,
@@ -445,10 +445,14 @@ function changeSummary(cell: ComparisonPlotCell): ReactNode {
     );
   }
 
+  const boundLabel = comparison.baseline.isCensored ? "at least" : "at most";
+
   return (
     <>
-      <strong>Bounded change; direction not established</strong>
-      <small>One-sided 95% bound on the censored run</small>
+      <strong>
+        Change is {boundLabel} {formatSigned(comparison.logBerDelta ?? 0, 2)} decades
+      </strong>
+      <small>Direction not established; one-sided 95% bound on the censored run</small>
     </>
   );
 }

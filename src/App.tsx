@@ -128,9 +128,6 @@ function AppShell({ children }: { children: React.ReactNode }) {
             <a className={route.kind === "history" ? "nav-link active" : "nav-link"} href="/">
               Run history
             </a>
-            <a className={route.kind === "comparison" ? "nav-link active" : "nav-link"} href="/comparison">
-              Example comparison
-            </a>
           </nav>
           <div className="topbar-status">
             <span className="status-dot" aria-hidden="true" />
