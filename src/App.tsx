@@ -5,6 +5,7 @@ import {
   type ScanRun,
 } from "./scan-model";
 import { loadRuns } from "./run-loader";
+import { EyeHeatmap } from "./eye-plot";
 
 type Route =
   | { kind: "history" }
@@ -359,6 +360,19 @@ function RunDetail({ run, metrics }: { run: ScanRun; metrics: EyeMetrics }) {
           <div className="metric-secondary">{formatNumber(run.cells.length, 0)} sweep points</div>
           <div className="metric-qualifier">{formatNumber(run.sweep.bitsTested, 0)} tested bits per point</div>
         </article>
+      </section>
+
+      <section className="detail-panel plot-panel" aria-labelledby="plot-title">
+        <div className="section-heading compact-heading plot-heading">
+          <div>
+            <p className="eyebrow">MEASUREMENT GRID</p>
+            <h2 id="plot-title">BER eye scan</h2>
+          </div>
+          <p className="plot-summary">
+            {run.sweep.phase.steps} × {run.sweep.threshold.steps} points · {formatNumber(run.sweep.bitsTested, 0)} bits per point
+          </p>
+        </div>
+        <EyeHeatmap run={run} />
       </section>
 
       <div className="detail-columns">
