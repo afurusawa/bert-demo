@@ -682,6 +682,13 @@ h2 {
   color: var(--faint);
 }
 
+.comparison-delta-secondary {
+  margin-top: 7px;
+  color: var(--accent-dark);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
 .comparison-panel {
   margin-top: 14px;
   overflow: hidden;

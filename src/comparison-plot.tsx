@@ -499,12 +499,14 @@ function ComparisonReadout({
         <div>
           <p className="comparison-run-label">Baseline lane 3 <span>{baseline.startedAt.slice(0, 10)}</span></p>
           <ReadoutValue label="Errors">{formatNumber(cell.baselineErrors, 0)}</ReadoutValue>
+          <ReadoutValue label="Tested bits">{formatNumber(baseline.sweep.bitsTested, 0)}</ReadoutValue>
           <ReadoutValue label="Observed BER">{baselineObserved === null ? "No errors observed" : formatBer(baselineObserved)}</ReadoutValue>
           <ReadoutValue label="95% upper bound">{formatBer(cell.comparison.baseline.upperConfidenceBer)}</ReadoutValue>
         </div>
         <div>
           <p className="comparison-run-label">Later unit lane 3 <span>{later.startedAt.slice(0, 10)}</span></p>
           <ReadoutValue label="Errors">{formatNumber(cell.laterErrors, 0)}</ReadoutValue>
+          <ReadoutValue label="Tested bits">{formatNumber(later.sweep.bitsTested, 0)}</ReadoutValue>
           <ReadoutValue label="Observed BER">{laterObserved === null ? "No errors observed" : formatBer(laterObserved)}</ReadoutValue>
           <ReadoutValue label="95% upper bound">{formatBer(cell.comparison.later.upperConfidenceBer)}</ReadoutValue>
         </div>

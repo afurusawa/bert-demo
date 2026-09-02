@@ -440,6 +440,7 @@ const COMPARISON_LATER_ID = "later-20260708-lane-3";
 function ComparisonMetricCard({
   label,
   delta,
+  deltaSecondary,
   unit,
   baseline,
   later,
@@ -447,6 +448,7 @@ function ComparisonMetricCard({
 }: {
   label: string;
   delta: string;
+  deltaSecondary?: string;
   unit: string;
   baseline: string;
   later: string;
@@ -456,6 +458,7 @@ function ComparisonMetricCard({
     <article className="metric-card comparison-metric-card">
       <div className="metric-card-top"><span className="eyebrow">{label}</span><span className="metric-mark">Δ</span></div>
       <div className="large-metric">{delta} <span>{unit}</span></div>
+      {deltaSecondary ? <div className="comparison-delta-secondary">{deltaSecondary}</div> : null}
       <div className="metric-secondary">{baseline} <span className="comparison-arrow">→</span> {later}</div>
       <div className="metric-qualifier">{qualifier}</div>
     </article>
@@ -489,6 +492,7 @@ function ComparisonView({ baseline, later }: { baseline: ScanRun; later: ScanRun
         <ComparisonMetricCard
           label="EYE WIDTH DELTA"
           delta={formatSigned(metrics.widthDeltaPs)}
+          deltaSecondary={`${formatSigned(metrics.widthDeltaUi, 3)} UI`}
           unit="ps"
           baseline={`${formatNumber(metrics.baseline.widthPs)} ps`}
           later={`${formatNumber(metrics.later.widthPs)} ps`}
