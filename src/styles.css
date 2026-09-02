@@ -15,8 +15,8 @@
   --accent: #596a6c;
   --accent-dark: #3d4e50;
   --accent-soft: #edf1f0;
-  --warm-soft: #f4eee3;
-  --warm-ink: #87612d;
+  --notice-soft: #eef1ef;
+  --notice-ink: #5f6d6c;
 }
 
 * {
@@ -33,6 +33,7 @@ body {
   min-height: 100vh;
   margin: 0;
   background: var(--canvas);
+  font-variant-numeric: tabular-nums;
 }
 
 button,
@@ -200,7 +201,7 @@ button {
 }
 
 .banner-label {
-  color: var(--warm-ink);
+  color: var(--notice-ink);
   white-space: nowrap;
 }
 
@@ -581,10 +582,10 @@ h2 {
   align-items: center;
   height: 23px;
   padding: 0 8px;
-  background: var(--warm-soft);
+  background: var(--notice-soft);
   border: 1px solid #eadfcf;
   border-radius: 3px;
-  color: var(--warm-ink);
+  color: var(--notice-ink);
   font-size: 9px;
   font-weight: 600;
   letter-spacing: 0.12em;
