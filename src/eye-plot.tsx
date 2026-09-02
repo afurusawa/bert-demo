@@ -2,33 +2,24 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent, PointerEvent } from "react";
 import {
   deriveCell,
-  EYE_TARGET_BER,
-  type AxisSpec,
   type DerivedCell,
   type ScanRun,
 } from "./scan-model";
-
-const VIEWBOX_WIDTH = 1_000;
-const VIEWBOX_HEIGHT = 520;
-const PLOT = {
-  left: 72,
-  top: 20,
-  width: 884,
-  height: 424,
-} as const;
-const COLOR_MIN_BER = 1e-9;
-const COLOR_MAX_BER = 1e-1;
-const ZERO_ERROR_COLOR = "#edf2ef";
-const VIRIDIS_STOPS = [
-  "#440154",
-  "#482878",
-  "#3e4989",
-  "#31688e",
-  "#26828e",
-  "#35b779",
-  "#6ece58",
-  "#fde725",
-] as const;
+import {
+  axisSamplePosition,
+  axisValue,
+  buildContourPath,
+  cellIndexFromPointer,
+  cellBounds,
+  moveSelection,
+  PLOT,
+  samplePoint,
+  tickValues,
+  VIEWBOX_HEIGHT,
+  VIEWBOX_WIDTH,
+} from "./plot-geometry";
+import { berColor, ZERO_ERROR_COLOR } from "./plot-colors";
+import { formatBer, formatNumber, formatSigned } from "./formatters";
 
 interface PlotCell {
   phaseIndex: number;
@@ -44,153 +35,6 @@ interface PlotData {
   cells: PlotCell[];
   zeroErrorPath: string;
   contourPath: string;
-}
-
-interface Point {
-  x: number;
-  y: number;
-}
-
-function axisValue(axis: AxisSpec, index: number): number {
-  if (axis.steps <= 1) {
-    return axis.min;
-  }
-
-  return axis.min + ((axis.max - axis.min) * index) / (axis.steps - 1);
-}
-
-function samplePoint(phaseIndex: number, thresholdIndex: number, phaseSteps: number, thresholdSteps: number): Point {
-  const phasePosition = (phaseIndex + 0.5) / Math.max(phaseSteps, 1);
-  const thresholdPosition = (thresholdIndex + 0.5) / Math.max(thresholdSteps, 1);
-
-  return {
-    x: PLOT.left + phasePosition * PLOT.width,
-    y: PLOT.top + (1 - thresholdPosition) * PLOT.height,
-  };
-}
-
-function cellBounds(phaseIndex: number, thresholdIndex: number, phaseSteps: number, thresholdSteps: number) {
-  const cellWidth = PLOT.width / Math.max(phaseSteps, 1);
-  const cellHeight = PLOT.height / Math.max(thresholdSteps, 1);
-
-  return {
-    x: PLOT.left + phaseIndex * cellWidth,
-    y: PLOT.top + (thresholdSteps - thresholdIndex - 1) * cellHeight,
-    width: cellWidth,
-    height: cellHeight,
-  };
-}
-
-function interpolateLogCrossing(firstValue: number, secondValue: number): number {
-  const firstLog = Math.log10(Math.max(firstValue, Number.MIN_VALUE));
-  const secondLog = Math.log10(Math.max(secondValue, Number.MIN_VALUE));
-  const targetLog = Math.log10(EYE_TARGET_BER);
-  const denominator = secondLog - firstLog;
-
-  if (Math.abs(denominator) < Number.EPSILON) {
-    return 0.5;
-  }
-
-  return Math.min(1, Math.max(0, (targetLog - firstLog) / denominator));
-}
-
-function contourEdge(
-  firstPoint: Point,
-  firstValue: number,
-  secondPoint: Point,
-  secondValue: number,
-): Point | null {
-  const firstPassing = firstValue <= EYE_TARGET_BER;
-  const secondPassing = secondValue <= EYE_TARGET_BER;
-
-  if (firstPassing === secondPassing) {
-    return null;
-  }
-
-  const fraction = interpolateLogCrossing(firstValue, secondValue);
-  return {
-    x: firstPoint.x + (secondPoint.x - firstPoint.x) * fraction,
-    y: firstPoint.y + (secondPoint.y - firstPoint.y) * fraction,
-  };
-}
-
-function appendContourSegment(segments: string[], first: Point, second: Point) {
-  segments.push(`M ${first.x.toFixed(2)} ${first.y.toFixed(2)} L ${second.x.toFixed(2)} ${second.y.toFixed(2)}`);
-}
-
-function appendMarchingSquare(
-  segments: string[],
-  points: [Point, Point, Point, Point],
-  values: [number, number, number, number],
-) {
-  const [bottomLeft, bottomRight, topRight, topLeft] = points;
-  const [bottomLeftValue, bottomRightValue, topRightValue, topLeftValue] = values;
-  const edges: [Point | null, Point | null, Point | null, Point | null] = [
-    contourEdge(bottomLeft, bottomLeftValue, bottomRight, bottomRightValue),
-    contourEdge(bottomRight, bottomRightValue, topRight, topRightValue),
-    contourEdge(topRight, topRightValue, topLeft, topLeftValue),
-    contourEdge(topLeft, topLeftValue, bottomLeft, bottomLeftValue),
-  ];
-  const passingMask =
-    (bottomLeftValue <= EYE_TARGET_BER ? 1 : 0) |
-    (bottomRightValue <= EYE_TARGET_BER ? 2 : 0) |
-    (topRightValue <= EYE_TARGET_BER ? 4 : 0) |
-    (topLeftValue <= EYE_TARGET_BER ? 8 : 0);
-  const crossingEdges = edges.flatMap((point, index) => (point ? [index] : []));
-
-  if (crossingEdges.length === 2) {
-    const [firstEdge, secondEdge] = crossingEdges;
-    appendContourSegment(segments, edges[firstEdge]!, edges[secondEdge]!);
-    return;
-  }
-
-  if (crossingEdges.length !== 4) {
-    return;
-  }
-
-  const centerLogBer =
-    (Math.log10(Math.max(bottomLeftValue, Number.MIN_VALUE)) +
-      Math.log10(Math.max(bottomRightValue, Number.MIN_VALUE)) +
-      Math.log10(Math.max(topRightValue, Number.MIN_VALUE)) +
-      Math.log10(Math.max(topLeftValue, Number.MIN_VALUE))) /
-    4;
-  const centerPassing = centerLogBer <= Math.log10(EYE_TARGET_BER);
-  const pairs =
-    passingMask === 5
-      ? centerPassing
-        ? [[0, 1], [2, 3]]
-        : [[0, 3], [1, 2]]
-      : [[0, 1], [2, 3]];
-
-  for (const [firstEdge, secondEdge] of pairs) {
-    appendContourSegment(segments, edges[firstEdge]!, edges[secondEdge]!);
-  }
-}
-
-function buildContourPath(upperBounds: number[], phaseSteps: number, thresholdSteps: number): string {
-  const segments: string[] = [];
-
-  for (let thresholdIndex = 0; thresholdIndex < thresholdSteps - 1; thresholdIndex += 1) {
-    for (let phaseIndex = 0; phaseIndex < phaseSteps - 1; phaseIndex += 1) {
-      const index = thresholdIndex * phaseSteps + phaseIndex;
-      const points: [Point, Point, Point, Point] = [
-        samplePoint(phaseIndex, thresholdIndex, phaseSteps, thresholdSteps),
-        samplePoint(phaseIndex + 1, thresholdIndex, phaseSteps, thresholdSteps),
-        samplePoint(phaseIndex + 1, thresholdIndex + 1, phaseSteps, thresholdSteps),
-        samplePoint(phaseIndex, thresholdIndex + 1, phaseSteps, thresholdSteps),
-      ];
-      const values: [number, number, number, number] = [
-        upperBounds[index],
-        upperBounds[index + 1],
-        upperBounds[index + phaseSteps + 1],
-        upperBounds[index + phaseSteps],
-      ];
-
-      appendMarchingSquare(segments, points, values);
-    }
-  }
-
-  return segments.join(" ");
 }
 
 function buildZeroErrorPath(cells: PlotCell[], phaseSteps: number, thresholdSteps: number): string {
@@ -242,117 +86,6 @@ function buildPlotData(run: ScanRun): PlotData {
     zeroErrorPath: buildZeroErrorPath(cells, phase.steps, threshold.steps),
     contourPath: buildContourPath(upperBounds, phase.steps, threshold.steps),
   };
-}
-
-function parseHexColor(value: string): [number, number, number] {
-  return [
-    Number.parseInt(value.slice(1, 3), 16),
-    Number.parseInt(value.slice(3, 5), 16),
-    Number.parseInt(value.slice(5, 7), 16),
-  ];
-}
-
-function interpolateColor(first: string, second: string, fraction: number): string {
-  const [firstRed, firstGreen, firstBlue] = parseHexColor(first);
-  const [secondRed, secondGreen, secondBlue] = parseHexColor(second);
-  const red = Math.round(firstRed + (secondRed - firstRed) * fraction);
-  const green = Math.round(firstGreen + (secondGreen - firstGreen) * fraction);
-  const blue = Math.round(firstBlue + (secondBlue - firstBlue) * fraction);
-
-  return `rgb(${red}, ${green}, ${blue})`;
-}
-
-function berColor(value: number): string {
-  const logPosition =
-    (Math.log10(Math.max(value, COLOR_MIN_BER)) - Math.log10(COLOR_MIN_BER)) /
-    (Math.log10(COLOR_MAX_BER) - Math.log10(COLOR_MIN_BER));
-  const normalized = Math.min(1, Math.max(0, logPosition));
-  const scaledPosition = normalized * (VIRIDIS_STOPS.length - 1);
-  const firstStop = Math.floor(scaledPosition);
-  const secondStop = Math.min(VIRIDIS_STOPS.length - 1, firstStop + 1);
-
-  return interpolateColor(VIRIDIS_STOPS[firstStop], VIRIDIS_STOPS[secondStop], scaledPosition - firstStop);
-}
-
-function formatNumber(value: number, maximumFractionDigits = 1): string {
-  return new Intl.NumberFormat("en-US", { maximumFractionDigits }).format(value);
-}
-
-function formatSigned(value: number, maximumFractionDigits = 1): string {
-  if (value === 0) {
-    return "0";
-  }
-
-  const formatted = formatNumber(Math.abs(value), maximumFractionDigits);
-  return value < 0 ? `-${formatted}` : `+${formatted}`;
-}
-
-function formatBer(value: number): string {
-  return value.toExponential(2).replace("e+", "e");
-}
-
-function axisSamplePosition(fraction: number, steps: number): number {
-  return (fraction * Math.max(steps - 1, 0) + 0.5) / Math.max(steps, 1);
-}
-
-function tickValues(axis: AxisSpec): Array<{ value: number; position: number }> {
-  return Array.from({ length: 5 }, (_, index) => {
-    const fraction = index / 4;
-    return {
-      value: axis.min + (axis.max - axis.min) * fraction,
-      position: fraction,
-    };
-  });
-}
-
-function pointerCellIndex(
-  event: PointerEvent<SVGRectElement>,
-  phaseSteps: number,
-  thresholdSteps: number,
-): number | null {
-  const bounds = event.currentTarget.getBoundingClientRect();
-  const x = (event.clientX - bounds.left) / bounds.width;
-  const y = (event.clientY - bounds.top) / bounds.height;
-
-  if (x < 0 || x > 1 || y < 0 || y > 1) {
-    return null;
-  }
-
-  const phaseIndex = Math.min(phaseSteps - 1, Math.max(0, Math.floor(x * phaseSteps)));
-  const thresholdIndex = Math.min(
-    thresholdSteps - 1,
-    Math.max(0, Math.floor((1 - y) * thresholdSteps)),
-  );
-
-  return thresholdIndex * phaseSteps + phaseIndex;
-}
-
-function moveSelection(
-  currentIndex: number,
-  key: string,
-  phaseSteps: number,
-  thresholdSteps: number,
-): number | null {
-  const currentPhase = currentIndex % phaseSteps;
-  const currentThreshold = Math.floor(currentIndex / phaseSteps);
-  let phaseIndex = currentPhase;
-  let thresholdIndex = currentThreshold;
-
-  if (key === "ArrowLeft") phaseIndex -= 1;
-  if (key === "ArrowRight") phaseIndex += 1;
-  if (key === "ArrowDown") thresholdIndex -= 1;
-  if (key === "ArrowUp") thresholdIndex += 1;
-
-  if (
-    phaseIndex < 0 ||
-    phaseIndex >= phaseSteps ||
-    thresholdIndex < 0 ||
-    thresholdIndex >= thresholdSteps
-  ) {
-    return null;
-  }
-
-  return thresholdIndex * phaseSteps + phaseIndex;
 }
 
 function ReadoutValue({ label, children }: { label: string; children: React.ReactNode }) {
@@ -503,7 +236,13 @@ function EyeHeatmap({ run }: { run: ScanRun }) {
   }, [plotData, run.sweep.phase.steps, run.sweep.threshold.steps]);
 
   const handlePointerMove = (event: PointerEvent<SVGRectElement>) => {
-    const nextIndex = pointerCellIndex(event, run.sweep.phase.steps, run.sweep.threshold.steps);
+    const nextIndex = cellIndexFromPointer(
+      event.clientX,
+      event.clientY,
+      event.currentTarget.getBoundingClientRect(),
+      run.sweep.phase.steps,
+      run.sweep.threshold.steps,
+    );
     if (nextIndex !== null) {
       setSelectedIndex(nextIndex);
     }

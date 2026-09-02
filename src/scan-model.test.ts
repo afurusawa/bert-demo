@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   createSeededRandom,
   calculateEyeMetrics,
+  calculateComparisonMetrics,
+  compareScanCells,
   deriveCell,
   erfc,
   generateSyntheticRuns,
@@ -122,5 +124,66 @@ describe("scan model", () => {
 
     expect(metrics.widthPs).toBe(0);
     expect(metrics.heightMv).toBe(0);
+  });
+
+  it("classifies exact, below-resolution, and confidence-bounded comparison changes", () => {
+    const bitsTested = 1_000_000_000;
+
+    const exact = compareScanCells({ errors: 20 }, { errors: 200 }, bitsTested);
+    expect(exact.kind).toBe("exact");
+    expect(exact.logBerDelta).toBeCloseTo(1, 12);
+    expect(exact.boundDirection).toBeNull();
+
+    const belowResolution = compareScanCells({ errors: 0 }, { errors: 0 }, bitsTested);
+    expect(belowResolution.kind).toBe("below-resolution");
+    expect(belowResolution.logBerDelta).toBeNull();
+    expect(belowResolution.boundDirection).toBeNull();
+
+    const bounded = compareScanCells({ errors: 0 }, { errors: 200 }, bitsTested);
+    expect(bounded.kind).toBe("bounded");
+    expect(bounded.boundDirection).toBe("worsened");
+    expect(bounded.boundMagnitude).toBeCloseTo(
+      Math.log10(200 / 2.9957322736),
+      8,
+    );
+
+    const ambiguous = compareScanCells({ errors: 0 }, { errors: 1 }, bitsTested);
+    expect(ambiguous.kind).toBe("bounded");
+    expect(ambiguous.boundDirection).toBe("uncertain");
+    expect(ambiguous.boundMagnitude).toBeNull();
+
+    const improved = compareScanCells({ errors: 200 }, { errors: 0 }, bitsTested);
+    expect(improved.kind).toBe("bounded");
+    expect(improved.boundDirection).toBe("improved");
+    expect(improved.boundMagnitude).toBeCloseTo(
+      Math.log10(200 / 2.9957322736),
+      8,
+    );
+  });
+
+  it("reports width and height deltas using the later-minus-baseline convention", () => {
+    const axis = { min: -2, max: 2, steps: 5 };
+    const bitsTested = 1_000_000_000;
+    const baselineCells = Array.from({ length: 25 }, () => ({ errors: 0 }));
+    const laterCells = Array.from({ length: 25 }, () => ({ errors: bitsTested }));
+
+    const metrics = calculateComparisonMetrics(
+      {
+        sweep: { phase: axis, threshold: axis, bitsTested },
+        cells: baselineCells,
+        dataRateGbps: 25.78,
+      },
+      {
+        sweep: { phase: axis, threshold: axis, bitsTested },
+        cells: laterCells,
+        dataRateGbps: 25.78,
+      },
+    );
+
+    expect(metrics.baseline.widthPs).toBe(4);
+    expect(metrics.later.widthPs).toBe(0);
+    expect(metrics.widthDeltaPs).toBe(-4);
+    expect(metrics.widthDeltaUi).toBeCloseTo(-0.10312, 5);
+    expect(metrics.heightDeltaMv).toBe(-4);
   });
 });
