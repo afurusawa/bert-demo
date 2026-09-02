@@ -1,15 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  calculateComparisonMetrics,
   calculateEyeMetrics,
   type EyeMetrics,
   type ScanRun,
 } from "./scan-model";
 import { loadRuns } from "./run-loader";
 import { EyeHeatmap } from "./eye-plot";
+import { ComparisonPlot } from "./comparison-plot";
+import { formatBer, formatNumber, formatSigned } from "./formatters";
 
 type Route =
   | { kind: "history" }
   | { kind: "run"; runId: string }
+  | { kind: "comparison" }
   | { kind: "not-found" };
 
 type SortKey =
@@ -38,6 +42,10 @@ function getRoute(): Route {
     return { kind: "run", runId: decodeURIComponent(runMatch[1]) };
   }
 
+  if (pathname === "/comparison") {
+    return { kind: "comparison" };
+  }
+
   return { kind: "not-found" };
 }
 
@@ -56,14 +64,6 @@ function formatDateTime(value: string): string {
     timeStyle: "short",
     timeZone: "UTC",
   }).format(new Date(value));
-}
-
-function formatNumber(value: number, maximumFractionDigits = 1): string {
-  return new Intl.NumberFormat("en-US", { maximumFractionDigits }).format(value);
-}
-
-function formatBer(value: number): string {
-  return value.toExponential(1).replace("e+", "e");
 }
 
 function sortValue(run: ScanRun, key: SortKey, metrics: EyeMetrics): string | number {
@@ -127,6 +127,9 @@ function AppShell({ children }: { children: React.ReactNode }) {
           <nav className="primary-nav" aria-label="Primary navigation">
             <a className={route.kind === "history" ? "nav-link active" : "nav-link"} href="/">
               Run history
+            </a>
+            <a className={route.kind === "comparison" ? "nav-link active" : "nav-link"} href="/comparison">
+              Example comparison
             </a>
           </nav>
           <div className="topbar-status">
@@ -224,6 +227,21 @@ function RunHistory({ runs }: { runs: ScanRun[] }) {
           <span className="dataset-key">DWELL</span>
           <span className="dataset-value">1.0 × 10⁹ bits / point</span>
         </div>
+      </section>
+
+      <section className="comparison-callout" aria-labelledby="example-comparison-title">
+        <div>
+          <p className="eyebrow">FIXED EXAMPLE / VISUAL INSPECTION</p>
+          <h2 id="example-comparison-title">Baseline lane 3 <span>→</span> later unit lane 3</h2>
+          <p>
+            <span className="mono-value">baseline-20260612-lane-3</span>
+            <span className="comparison-callout-separator"> vs </span>
+            <span className="mono-value">later-20260708-lane-3</span>
+          </p>
+        </div>
+        <a className="primary-button" href="/comparison">
+          Open example comparison <span aria-hidden="true">→</span>
+        </a>
       </section>
 
       <section className="table-section" aria-labelledby="run-table-title">
@@ -346,13 +364,13 @@ function RunDetail({ run, metrics }: { run: ScanRun; metrics: EyeMetrics }) {
           <div className="metric-card-top"><span className="eyebrow">EYE WIDTH</span><span className="metric-mark">↔</span></div>
           <div className="large-metric">{formatNumber(metrics.widthPs)} <span>ps</span></div>
           <div className="metric-secondary">{metrics.widthUi.toFixed(3)} UI</div>
-          <div className="metric-qualifier">at BER {formatBer(metrics.targetBer)} · {metrics.confidence * 100}% confidence</div>
+          <div className="metric-qualifier">at BER {formatBer(metrics.targetBer, 1)} · {metrics.confidence * 100}% confidence</div>
         </article>
         <article className="metric-card">
           <div className="metric-card-top"><span className="eyebrow">EYE HEIGHT</span><span className="metric-mark">↕</span></div>
           <div className="large-metric">{formatNumber(metrics.heightMv)} <span>mV</span></div>
           <div className="metric-secondary">threshold slice {formatNumber(metrics.thresholdSliceMv)} mV</div>
-          <div className="metric-qualifier">at BER {formatBer(metrics.targetBer)} · {metrics.confidence * 100}% confidence</div>
+          <div className="metric-qualifier">at BER {formatBer(metrics.targetBer, 1)} · {metrics.confidence * 100}% confidence</div>
         </article>
         <article className="metric-card metric-card-neutral">
           <div className="metric-card-top"><span className="eyebrow">GRID COVERAGE</span><span className="metric-mark">▦</span></div>
@@ -415,6 +433,109 @@ function RunDetail({ run, metrics }: { run: ScanRun; metrics: EyeMetrics }) {
           </div>
         </section>
       </div>
+    </main>
+  );
+}
+
+const COMPARISON_BASELINE_ID = "baseline-20260612-lane-3";
+const COMPARISON_LATER_ID = "later-20260708-lane-3";
+
+function ComparisonMetricCard({
+  label,
+  delta,
+  unit,
+  baseline,
+  later,
+  qualifier,
+}: {
+  label: string;
+  delta: string;
+  unit: string;
+  baseline: string;
+  later: string;
+  qualifier: string;
+}) {
+  return (
+    <article className="metric-card comparison-metric-card">
+      <div className="metric-card-top"><span className="eyebrow">{label}</span><span className="metric-mark">Δ</span></div>
+      <div className="large-metric">{delta} <span>{unit}</span></div>
+      <div className="metric-secondary">{baseline} <span className="comparison-arrow">→</span> {later}</div>
+      <div className="metric-qualifier">{qualifier}</div>
+    </article>
+  );
+}
+
+function ComparisonView({ baseline, later }: { baseline: ScanRun; later: ScanRun }) {
+  const metrics = calculateComparisonMetrics(baseline, later);
+
+  return (
+    <main className="page-width page-content">
+      <a className="back-link" href="/">← Back to run history</a>
+      <section className="detail-heading comparison-heading">
+        <div>
+          <p className="eyebrow">FIXED EXAMPLE / RUN COMPARISON</p>
+          <div className="detail-title-line">
+            <h1>Baseline lane 3 <span>vs</span> later unit lane 3</h1>
+            <span className="fixture-chip">SYNTHETIC FIXTURES</span>
+          </div>
+          <p className="lede">
+            A fixed pair selected for visual inspection: the 2026-06-12 baseline scan and the 2026-07-08 later-unit scan.
+          </p>
+        </div>
+        <div className="run-id-block comparison-pair-block">
+          <span className="dataset-key">PAIR</span>
+          <span className="run-id mono-value">L3 / L3</span>
+        </div>
+      </section>
+
+      <section className="metric-grid comparison-metric-grid" aria-label="Comparison metric changes">
+        <ComparisonMetricCard
+          label="EYE WIDTH DELTA"
+          delta={formatSigned(metrics.widthDeltaPs)}
+          unit="ps"
+          baseline={`${formatNumber(metrics.baseline.widthPs)} ps`}
+          later={`${formatNumber(metrics.later.widthPs)} ps`}
+          qualifier="Later unit minus baseline · BER 1e-6 · 95% confidence"
+        />
+        <ComparisonMetricCard
+          label="EYE HEIGHT DELTA"
+          delta={formatSigned(metrics.heightDeltaMv)}
+          unit="mV"
+          baseline={`${formatNumber(metrics.baseline.heightMv)} mV`}
+          later={`${formatNumber(metrics.later.heightMv)} mV`}
+          qualifier="Later unit minus baseline · BER 1e-6 · 95% confidence"
+        />
+        <article className="metric-card metric-card-neutral comparison-metric-card">
+          <div className="metric-card-top"><span className="eyebrow">COMPARISON BASIS</span><span className="metric-mark">≋</span></div>
+          <div className="large-metric">1e-6 <span>BER</span></div>
+          <div className="metric-secondary">one-sided 95% contours</div>
+          <div className="metric-qualifier">Exact point estimates and confidence-bounded cells stay distinct.</div>
+        </article>
+      </section>
+
+      <section className="detail-panel comparison-panel" aria-labelledby="comparison-plot-title">
+        <div className="section-heading compact-heading comparison-panel-heading">
+          <div>
+            <p className="eyebrow">MEASUREMENT COMPARISON</p>
+            <h2 id="comparison-plot-title">Eye closure across shared sweep axes</h2>
+          </div>
+          <p className="plot-summary">65 × 45 points · fixed BER 1e-6 target</p>
+        </div>
+        <ComparisonPlot baseline={baseline} later={later} />
+      </section>
+
+      <section className="comparison-source-strip" aria-label="Compared scan records">
+        <div>
+          <span className="dataset-key">BASELINE RECORD</span>
+          <strong>2026-06-12 · DUT-4471 · Lane 3</strong>
+          <a href={`/runs/${encodeURIComponent(baseline.id)}`}>Open run record →</a>
+        </div>
+        <div>
+          <span className="dataset-key">LATER UNIT RECORD</span>
+          <strong>2026-07-08 · DUT-5120 · Lane 3</strong>
+          <a href={`/runs/${encodeURIComponent(later.id)}`}>Open run record →</a>
+        </div>
+      </section>
     </main>
   );
 }
@@ -486,6 +607,10 @@ export default function App() {
     } else if (route.kind === "run") {
       const selectedRun = runs.find((run) => run.id === route.runId);
       content = selectedRun ? <RunDetail run={selectedRun} metrics={calculateEyeMetrics(selectedRun)} /> : <NotFound />;
+    } else if (route.kind === "comparison") {
+      const baseline = runs.find((run) => run.id === COMPARISON_BASELINE_ID);
+      const later = runs.find((run) => run.id === COMPARISON_LATER_ID);
+      content = baseline && later ? <ComparisonView baseline={baseline} later={later} /> : <NotFound />;
     } else {
       content = <NotFound />;
     }

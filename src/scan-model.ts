@@ -432,6 +432,72 @@ export function deriveCell(cell: ScanCell, bitsTested: number): DerivedCell {
   };
 }
 
+export type ComparisonCellKind = "exact" | "below-resolution" | "bounded";
+export type ComparisonBoundDirection = "improved" | "worsened" | "uncertain";
+
+export interface ComparisonCell {
+  kind: ComparisonCellKind;
+  baseline: DerivedCell;
+  later: DerivedCell;
+  /** Later minus baseline in log10(BER); for bounded cells this is a confidence-qualified bound. */
+  logBerDelta: number | null;
+  boundDirection: ComparisonBoundDirection | null;
+  boundMagnitude: number | null;
+}
+
+/** Compares two aligned cells without assigning an exact BER to zero observed errors. */
+export function compareScanCells(
+  baselineCell: ScanCell,
+  laterCell: ScanCell,
+  bitsTested: number,
+): ComparisonCell {
+  const baseline = deriveCell(baselineCell, bitsTested);
+  const later = deriveCell(laterCell, bitsTested);
+
+  if (baseline.isCensored && later.isCensored) {
+    return {
+      kind: "below-resolution",
+      baseline,
+      later,
+      logBerDelta: null,
+      boundDirection: null,
+      boundMagnitude: null,
+    };
+  }
+
+  if (!baseline.isCensored && !later.isCensored) {
+    const logBerDelta = Math.log10(later.observedBer!) - Math.log10(baseline.observedBer!);
+    return {
+      kind: "exact",
+      baseline,
+      later,
+      logBerDelta,
+      boundDirection: null,
+      boundMagnitude: null,
+    };
+  }
+
+  const baselineBer = baseline.observedBer ?? baseline.upperConfidenceBer;
+  const laterBer = later.observedBer ?? later.upperConfidenceBer;
+  const logBerDelta = Math.log10(laterBer) - Math.log10(baselineBer);
+  const boundDirection: ComparisonBoundDirection = baseline.isCensored
+    ? later.observedBer! > baseline.upperConfidenceBer
+      ? "worsened"
+      : "uncertain"
+    : baseline.observedBer! > later.upperConfidenceBer
+      ? "improved"
+      : "uncertain";
+
+  return {
+    kind: "bounded",
+    baseline,
+    later,
+    logBerDelta,
+    boundDirection,
+    boundMagnitude: boundDirection === "uncertain" ? null : Math.abs(logBerDelta),
+  };
+}
+
 export const EYE_TARGET_BER = 1e-6;
 export const BER_CONFIDENCE = 0.95;
 
@@ -445,7 +511,7 @@ export interface EyeMetrics {
   thresholdSliceMv: number;
 }
 
-interface ScanMetricSource {
+export interface ScanMetricSource {
   sweep: SweepGeometry;
   cells: ScanCell[];
   dataRateGbps: number;
@@ -558,5 +624,42 @@ export function calculateEyeMetrics(source: ScanMetricSource): EyeMetrics {
     confidence: BER_CONFIDENCE,
     phaseSlicePs: phaseCoordinates[nominalPhaseIndex],
     thresholdSliceMv: thresholdCoordinates[nominalThresholdIndex],
+  };
+}
+
+export interface ComparisonMetrics {
+  baseline: EyeMetrics;
+  later: EyeMetrics;
+  widthDeltaPs: number;
+  widthDeltaUi: number;
+  heightDeltaMv: number;
+}
+
+function sameAxis(first: AxisSpec, second: AxisSpec): boolean {
+  return first.min === second.min && first.max === second.max && first.steps === second.steps;
+}
+
+/** Calculates later-minus-baseline eye-opening deltas on a shared sweep geometry. */
+export function calculateComparisonMetrics(
+  baseline: ScanMetricSource,
+  later: ScanMetricSource,
+): ComparisonMetrics {
+  if (
+    !sameAxis(baseline.sweep.phase, later.sweep.phase) ||
+    !sameAxis(baseline.sweep.threshold, later.sweep.threshold) ||
+    baseline.sweep.bitsTested !== later.sweep.bitsTested
+  ) {
+    throw new RangeError("Comparison runs must use the same phase, threshold, and tested-bit geometry");
+  }
+
+  const baselineMetrics = calculateEyeMetrics(baseline);
+  const laterMetrics = calculateEyeMetrics(later);
+
+  return {
+    baseline: baselineMetrics,
+    later: laterMetrics,
+    widthDeltaPs: laterMetrics.widthPs - baselineMetrics.widthPs,
+    widthDeltaUi: laterMetrics.widthUi - baselineMetrics.widthUi,
+    heightDeltaMv: laterMetrics.heightMv - baselineMetrics.heightMv,
   };
 }
