@@ -583,7 +583,7 @@ h2 {
   height: 23px;
   padding: 0 8px;
   background: var(--notice-soft);
-  border: 1px solid #eadfcf;
+  border: 1px solid var(--line-strong);
   border-radius: 3px;
   color: var(--notice-ink);
   font-size: 9px;
