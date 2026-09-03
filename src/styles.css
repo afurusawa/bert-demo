@@ -1652,23 +1652,23 @@ h2 {
 }
 
 .secondary-button {
-  background: var(--paper);
+  background: var(--surface-paper);
   border: 1px solid var(--edge-border-strong);
-  color: var(--accent-dark);
+  color: var(--surface-accent);
 }
 
 .secondary-button:hover {
-  background: #f5faf8;
+  background: var(--surface-soft);
 }
 
 .primary-button {
-  background: var(--accent);
+  background: var(--surface-accent);
   border: 1px solid var(--ink-on-accent);
   color: var(--ink-on-accent);
 }
 
 .primary-button:hover {
-  background: var(--accent-dark);
+  background: var(--ink-primary);
 }
 
 .loading-state,
