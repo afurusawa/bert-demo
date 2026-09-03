@@ -188,15 +188,22 @@ describe("shared type foundation", () => {
     expect(fieldLabel).not.toEqual(sectionKicker);
   });
 
-  it("sets metadata labels at the compact floor, uppercase, at reduced tracking", () => {
+  it("sets metadata labels at the compact floor, uppercase, with quiet emphasis", () => {
     expect(valueOf(".field-label", "font-size")).toBe("var(--text-metadata)");
     expect(METADATA_SIZE_PX).toBe(15);
     expect(METADATA_SIZE_PX).toBeLessThan(TYPE_RAMP.label);
     expect(valueOf(".field-label", "letter-spacing")).toBe("var(--tracking-field-label)");
-    expect(LABEL_STYLES.fieldLabel.trackingEm).toBe(0.06);
-    expect(valueOf(".field-label", "font-weight")).toBe("var(--weight-medium)");
-    expect(LABEL_STYLES.fieldLabel.weight).toBe(500);
+    expect(LABEL_STYLES.fieldLabel.trackingEm).toBe(0.04);
+    expect(valueOf(".field-label", "font-weight")).toBe("var(--weight-regular)");
+    expect(LABEL_STYLES.fieldLabel.weight).toBe(400);
     expect(valueOf(".field-label", "text-transform")).toBe("uppercase");
+  });
+
+  it("keeps section kickers quieter than body copy", () => {
+    expect(valueOf(".section-kicker", "font-size")).toBe("var(--text-metadata)");
+    expect(valueOf(".section-kicker", "font-weight")).toBe("var(--weight-regular)");
+    expect(valueOf(".section-kicker", "letter-spacing")).toBe("var(--tracking-section-kicker)");
+    expect(LABEL_STYLES.sectionKicker.weight).toBe(400);
   });
 
   it("draws the field label at 7:1 over every surface it sits on", () => {

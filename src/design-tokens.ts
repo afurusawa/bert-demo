@@ -55,8 +55,8 @@ export const FONT_WEIGHTS = {
  * so it stays visually subordinate to the 19px body step.
  */
 export const LABEL_STYLES = {
-  fieldLabel: { trackingEm: 0.06, weight: FONT_WEIGHTS.medium },
-  sectionKicker: { trackingEm: 0.02, weight: FONT_WEIGHTS.medium },
+  fieldLabel: { trackingEm: 0.04, weight: FONT_WEIGHTS.regular },
+  sectionKicker: { trackingEm: 0.02, weight: FONT_WEIGHTS.regular },
 } as const;
 
 /** Bringhurst's comfortable measure, in characters. */

@@ -55,8 +55,8 @@ borders and swatches.
 
 **Labels.** The single `.eyebrow` class was doing two jobs. Field labels (naming
 a value that would otherwise be an unlabelled number) are kept and made legible
-at the compact 15px metadata floor, with tracking reduced 0.14em → 0.06em and
-weight 500. Section kickers that merely paraphrase the heading beneath them are
+at the compact 15px metadata floor, with tracking reduced 0.14em → 0.04em and
+regular weight. Section kickers that merely paraphrase the heading beneath them are
 deleted. Uppercase is retained deliberately — it is the instrument-software
 register — but it is no longer asked to create hierarchy at 9px or compete with
 the 19px body step.

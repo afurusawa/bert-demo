@@ -459,11 +459,10 @@ function ComparisonView({ baseline, later }: { baseline: ScanRun; later: ScanRun
   const metrics = calculateComparisonMetrics(baseline, later);
 
   return (
-    <main className="page-width page-content">
+    <main className="page-width page-content comparison-page">
       <a className="back-link" href="/">← Back to run history</a>
       <section className="detail-heading comparison-heading">
         <div>
-          <p className="eyebrow">FIXED EXAMPLE / RUN COMPARISON</p>
           <div className="detail-title-line">
             <h1>Baseline lane 3 <span>vs</span> later unit lane 3</h1>
             <span className="fixture-chip">SYNTHETIC FIXTURES</span>
@@ -507,7 +506,6 @@ function ComparisonView({ baseline, later }: { baseline: ScanRun; later: ScanRun
       <section className="detail-panel comparison-panel" aria-labelledby="comparison-plot-title">
         <div className="section-heading compact-heading comparison-panel-heading">
           <div>
-            <p className="eyebrow">MEASUREMENT COMPARISON</p>
             <h2 id="comparison-plot-title">Eye closure across shared sweep axes</h2>
           </div>
           <p className="plot-summary">65 × 45 points · fixed BER 1e-6 target</p>
