@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "generate:fixtures": "tsx scripts/generate-fixtures.ts"
+    "generate:fixtures": "tsx scripts/generate-fixtures.ts",
+    "generate:tokens": "tsx scripts/generate-tokens.ts"
   },
   "dependencies": {
     "@fontsource/ibm-plex-sans": "^5.2.6",
