@@ -7,6 +7,7 @@ import {
   LABEL_STYLES,
   LARGE_TEXT_CONTRAST_RATIO,
   MINIMUM_SIZE_PX,
+  METADATA_SIZE_PX,
   NON_TEXT_CONTRAST_RATIO,
   NON_TEXT_INKS,
   NON_TEXT_PAIRS,
@@ -113,6 +114,7 @@ describe("design tokens", () => {
     const block = renderTokenBlock();
 
     expect(block).toContain("--text-body: 1.1875rem;");
+    expect(block).toContain(`--text-metadata: ${METADATA_SIZE_PX / 16}rem;`);
     expect(block).toContain("--space-4: 4px;");
     expect(block).toContain(`--ink-primary: ${TEXT_INKS.primary};`);
     expect(block).toContain(`--target-standalone-action: ${TARGET_SIZES.standaloneAction}px;`);

@@ -11,6 +11,9 @@ export const ROOT_FONT_SIZE_PX = 16;
 /** 16 arcminutes at 600mm. No text may render smaller than this. */
 export const MINIMUM_SIZE_PX = 15;
 
+/** Compact metadata may use the legibility floor without shrinking body copy. */
+export const METADATA_SIZE_PX = MINIMUM_SIZE_PX;
+
 /** At and above this size, WCAG's large-text contrast threshold applies. */
 export const LARGE_TEXT_SIZE_PX = 24;
 
@@ -46,9 +49,10 @@ export const FONT_WEIGHTS = {
 /**
  * The two label classes that replace the single overloaded eyebrow. A field
  * label names a value that would otherwise be an unlabelled number; a section
- * kicker paraphrases the heading beneath it. Both sit at the label step:
+ * kicker paraphrases the heading beneath it. Both are compact metadata:
  * uppercase is kept as the instrument-software register, but it is no longer
- * asked to carry hierarchy at 9px.
+ * asked to carry hierarchy at 9px. Metadata uses the compact legibility floor
+ * so it stays visually subordinate to the 19px body step.
  */
 export const LABEL_STYLES = {
   fieldLabel: { trackingEm: 0.06, weight: FONT_WEIGHTS.medium },
@@ -223,6 +227,7 @@ export const TOKEN_BLOCK_END = "/* end generated tokens */";
  */
 export function renderTokenBlock(): string {
   const declarations = [
+    `--text-metadata: ${rem(METADATA_SIZE_PX)};`,
     ...Object.entries(TYPE_RAMP).map(([name, size]) => `--text-${kebabCase(name)}: ${rem(size)};`),
     ...Object.entries(LINE_HEIGHTS).map(([name, height]) => `--leading-${kebabCase(name)}: ${height};`),
     ...Object.entries(FONT_WEIGHTS).map(([name, weight]) => `--weight-${kebabCase(name)}: ${weight};`),

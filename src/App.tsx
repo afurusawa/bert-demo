@@ -20,8 +20,6 @@ type SortKey =
   | "date"
   | "dut"
   | "lane"
-  | "rate"
-  | "pattern"
   | "temperature"
   | "width"
   | "height";
@@ -74,10 +72,6 @@ function sortValue(run: ScanRun, key: SortKey, metrics: EyeMetrics): string | nu
       return run.dut.id;
     case "lane":
       return run.lane;
-    case "rate":
-      return run.dataRateGbps;
-    case "pattern":
-      return run.pattern;
     case "temperature":
       return run.temperatureC;
     case "width":
@@ -168,7 +162,7 @@ function SortButton({
 
   return (
     <button className={isActive ? "sort-button sorted" : "sort-button"} onClick={() => onSort(column)}>
-      <span>{label}</span>
+      <span className="field-label">{label}</span>
       <span className="sort-indicator" aria-hidden="true">
         {indicator}
       </span>
@@ -196,10 +190,9 @@ function RunHistory({ runs }: { runs: ScanRun[] }) {
   };
 
   return (
-    <main className="page-width page-content">
+    <main className="page-width page-content run-history-page">
       <section className="page-heading">
         <div>
-          <p className="eyebrow">RUN BROWSER / STATIC DATASET</p>
           <h1>Run history</h1>
           <p className="lede">
             Twelve lane scans across a healthy baseline, a later unit, and a stabilized thermal condition.
@@ -207,28 +200,35 @@ function RunHistory({ runs }: { runs: ScanRun[] }) {
         </div>
         <div className="heading-stat" aria-label={`${runs.length} stored scans`}>
           <span className="heading-stat-value">{runs.length}</span>
-          <span className="heading-stat-label">stored scans</span>
+          <span className="field-label">STORED SCANS</span>
         </div>
       </section>
 
       <section className="dataset-strip" aria-label="Fixture dataset summary">
         <div className="dataset-item">
-          <span className="dataset-key">GROUPS</span>
+          <span className="field-label">GROUPS</span>
           <span className="dataset-value">Baseline · later unit · thermal</span>
         </div>
         <div className="dataset-item">
-          <span className="dataset-key">SWEEP</span>
+          <span className="field-label">SWEEP</span>
           <span className="dataset-value">65 phase × 45 threshold points</span>
         </div>
         <div className="dataset-item">
-          <span className="dataset-key">DWELL</span>
+          <span className="field-label">DWELL</span>
           <span className="dataset-value">1.0 × 10⁹ bits / point</span>
+        </div>
+        <div className="dataset-item">
+          <span className="field-label">DATA RATE</span>
+          <span className="dataset-value">25.78 Gbps</span>
+        </div>
+        <div className="dataset-item">
+          <span className="field-label">PATTERN</span>
+          <span className="dataset-value">PRBS31</span>
         </div>
       </section>
 
       <section className="comparison-callout" aria-labelledby="example-comparison-title">
         <div>
-          <p className="eyebrow">FIXED EXAMPLE / VISUAL INSPECTION</p>
           <h2 id="example-comparison-title">Baseline lane 3 <span>→</span> later unit lane 3</h2>
           <p>
             <span className="mono-value">baseline-20260612-lane-3</span>
@@ -244,7 +244,6 @@ function RunHistory({ runs }: { runs: ScanRun[] }) {
       <section className="table-section" aria-labelledby="run-table-title">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">ALL RUNS</p>
             <h2 id="run-table-title">Stored measurements</h2>
           </div>
           <p className="section-help">Select a row to open its shareable run record.</p>
@@ -263,12 +262,6 @@ function RunHistory({ runs }: { runs: ScanRun[] }) {
                 <th scope="col" aria-sort={sort.key === "lane" ? (sort.direction === "asc" ? "ascending" : "descending") : undefined}>
                   <SortButton label="Lane" column="lane" sort={sort} onSort={changeSort} />
                 </th>
-                <th scope="col" aria-sort={sort.key === "rate" ? (sort.direction === "asc" ? "ascending" : "descending") : undefined}>
-                  <SortButton label="Rate" column="rate" sort={sort} onSort={changeSort} />
-                </th>
-                <th scope="col" aria-sort={sort.key === "pattern" ? (sort.direction === "asc" ? "ascending" : "descending") : undefined}>
-                  <SortButton label="Pattern" column="pattern" sort={sort} onSort={changeSort} />
-                </th>
                 <th scope="col" aria-sort={sort.key === "temperature" ? (sort.direction === "asc" ? "ascending" : "descending") : undefined}>
                   <SortButton label="Temp" column="temperature" sort={sort} onSort={changeSort} />
                 </th>
@@ -278,7 +271,6 @@ function RunHistory({ runs }: { runs: ScanRun[] }) {
                 <th scope="col" aria-sort={sort.key === "height" ? (sort.direction === "asc" ? "ascending" : "descending") : undefined}>
                   <SortButton label="Eye height" column="height" sort={sort} onSort={changeSort} />
                 </th>
-                <th scope="col"><span className="visually-hidden">Open</span></th>
               </tr>
             </thead>
             <tbody>
@@ -287,8 +279,9 @@ function RunHistory({ runs }: { runs: ScanRun[] }) {
                 return (
                   <tr key={run.id}>
                     <td className="date-cell">
-                      <a className="row-link" href={`/runs/${encodeURIComponent(run.id)}`}>
+                      <a className="row-link" href={`/runs/${encodeURIComponent(run.id)}`} aria-label={`Open run ${run.id}`}>
                         {formatDate(run.startedAt)}
+                        <span className="row-link-arrow" aria-hidden="true">{"\u2192"}</span>
                       </a>
                       <span className="sub-value">{run.startedAt.slice(11, 16)} UTC</span>
                     </td>
@@ -297,8 +290,6 @@ function RunHistory({ runs }: { runs: ScanRun[] }) {
                       <span className="sub-value">{run.dut.description}</span>
                     </td>
                     <td className="numeric-cell"><span className="lane-badge">L{run.lane}</span></td>
-                    <td className="numeric-cell">{run.dataRateGbps.toFixed(2)} <span className="unit">Gbps</span></td>
-                    <td><span className="mono-value">{run.pattern}</span></td>
                     <td className="numeric-cell">{run.temperatureC} <span className="unit">°C</span></td>
                     <td className="metric-cell">
                       <span>{formatNumber(metrics.widthPs)} <span className="unit">ps</span></span>
@@ -308,7 +299,6 @@ function RunHistory({ runs }: { runs: ScanRun[] }) {
                       <span>{formatNumber(metrics.heightMv)} <span className="unit">mV</span></span>
                       <span className="sub-value">95% upper bound</span>
                     </td>
-                    <td className="open-cell"><a className="open-link" href={`/runs/${encodeURIComponent(run.id)}`} aria-label={`Open ${run.id}`}>Open <span aria-hidden="true">→</span></a></td>
                   </tr>
                 );
               })}

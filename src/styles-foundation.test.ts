@@ -5,6 +5,7 @@ import {
   AVERAGE_CHARACTER_WIDTH_EM,
   BREAKPOINTS,
   LABEL_STYLES,
+  METADATA_SIZE_PX,
   LEDE_MEASURE_CHARACTERS,
   MEASURE_BAND_CHARACTERS,
   MINIMUM_SIZE_PX,
@@ -122,32 +123,33 @@ function camelCase(name: string): string {
 }
 
 const foundationDeclarations = declarations(foundation);
+const TEXT_SIZES = { ...TYPE_RAMP, metadata: METADATA_SIZE_PX };
 
 describe("shared type foundation", () => {
-  it("sets every font size from the six-step ramp", () => {
+  it("sets every font size from the ramp or compact metadata token", () => {
     const sizes = foundationDeclarations.filter((entry) => entry.property === "font-size");
 
     expect(sizes.length).toBeGreaterThan(0);
     for (const size of sizes) {
-      expect(Object.keys(TYPE_RAMP)).toContain(camelCase(tokenName(size.value, "text")));
+      expect(Object.keys(TEXT_SIZES)).toContain(camelCase(tokenName(size.value, "text")));
     }
   });
 
-  it("collapses the foundation to at most the six ramp steps", () => {
+  it("collapses the foundation to the ramp plus the metadata floor", () => {
     const steps = new Set(
       foundationDeclarations
         .filter((entry) => entry.property === "font-size")
         .map((entry) => entry.value),
     );
 
-    expect(steps.size).toBeLessThanOrEqual(Object.keys(TYPE_RAMP).length);
+    expect(steps.size).toBeLessThanOrEqual(Object.keys(TEXT_SIZES).length);
   });
 
   it("renders no text below the legible floor", () => {
     for (const size of foundationDeclarations.filter((entry) => entry.property === "font-size")) {
-      const step = camelCase(tokenName(size.value, "text")) as keyof typeof TYPE_RAMP;
+      const step = camelCase(tokenName(size.value, "text")) as keyof typeof TEXT_SIZES;
 
-      expect(TYPE_RAMP[step]).toBeGreaterThanOrEqual(MINIMUM_SIZE_PX);
+      expect(TEXT_SIZES[step]).toBeGreaterThanOrEqual(MINIMUM_SIZE_PX);
     }
   });
 
@@ -186,9 +188,10 @@ describe("shared type foundation", () => {
     expect(fieldLabel).not.toEqual(sectionKicker);
   });
 
-  it("sets the field label at the label step, uppercase, at reduced tracking", () => {
-    expect(valueOf(".field-label", "font-size")).toBe("var(--text-label)");
-    expect(TYPE_RAMP.label).toBe(16);
+  it("sets metadata labels at the compact floor, uppercase, at reduced tracking", () => {
+    expect(valueOf(".field-label", "font-size")).toBe("var(--text-metadata)");
+    expect(METADATA_SIZE_PX).toBe(15);
+    expect(METADATA_SIZE_PX).toBeLessThan(TYPE_RAMP.label);
     expect(valueOf(".field-label", "letter-spacing")).toBe("var(--tracking-field-label)");
     expect(LABEL_STYLES.fieldLabel.trackingEm).toBe(0.06);
     expect(valueOf(".field-label", "font-weight")).toBe("var(--weight-medium)");
