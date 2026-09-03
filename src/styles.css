@@ -563,6 +563,11 @@ h2 {
   padding-right: var(--space-20);
 }
 
+.run-table th.numeric-cell .sort-button {
+  width: 100%;
+  justify-content: flex-end;
+}
+
 .run-table tbody tr {
   transition: background 120ms ease;
 }
