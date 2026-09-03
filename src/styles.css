@@ -182,12 +182,17 @@ button {
   align-items: stretch;
 }
 
-.nav-link {
-  position: relative;
+.nav-link,
+.back-link,
+.comparison-source-strip a {
   display: inline-flex;
   align-items: center;
   min-width: var(--target-standalone-action);
   min-height: var(--target-standalone-action);
+}
+
+.nav-link {
+  position: relative;
   padding: 0 20px;
   color: var(--muted);
   font-size: 13px;
@@ -431,12 +436,17 @@ h2 {
   border-bottom: 0;
 }
 
-.sort-button {
+.sort-button,
+.row-link,
+.open-link {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
   min-width: var(--target-in-context-control);
   min-height: var(--target-in-context-control);
+}
+
+.sort-button {
+  gap: 8px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -460,10 +470,6 @@ h2 {
 }
 
 .row-link {
-  display: inline-flex;
-  align-items: center;
-  min-width: var(--target-in-context-control);
-  min-height: var(--target-in-context-control);
   color: var(--accent-dark);
   font-weight: 500;
   text-decoration: none;
@@ -535,10 +541,6 @@ h2 {
 }
 
 .open-link {
-  display: inline-flex;
-  align-items: center;
-  min-width: var(--target-in-context-control);
-  min-height: var(--target-in-context-control);
   color: var(--accent-dark);
   font-size: 12px;
   font-weight: 500;
@@ -611,10 +613,6 @@ h2 {
 }
 
 .back-link {
-  display: inline-flex;
-  align-items: center;
-  min-width: var(--target-standalone-action);
-  min-height: var(--target-standalone-action);
   margin-bottom: 38px;
   color: var(--accent-dark);
   font-size: 12px;
@@ -1101,10 +1099,6 @@ h2 {
 }
 
 .comparison-source-strip a {
-  display: inline-flex;
-  align-items: center;
-  min-width: var(--target-standalone-action);
-  min-height: var(--target-standalone-action);
   width: fit-content;
   color: var(--accent-dark);
   font-size: 11px;

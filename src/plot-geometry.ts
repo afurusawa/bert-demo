@@ -219,6 +219,10 @@ export function moveSelection(
   phaseSteps: number,
   thresholdSteps: number,
 ): number | null {
+  if (!["ArrowLeft", "ArrowRight", "ArrowDown", "ArrowUp"].includes(key)) {
+    return null;
+  }
+
   const currentPhase = currentIndex % phaseSteps;
   const currentThreshold = Math.floor(currentIndex / phaseSteps);
   let phaseIndex = currentPhase;
