@@ -259,16 +259,16 @@ function RunHistory({ runs }: { runs: ScanRun[] }) {
                 <th scope="col" aria-sort={sort.key === "dut" ? (sort.direction === "asc" ? "ascending" : "descending") : undefined}>
                   <SortButton label="DUT" column="dut" sort={sort} onSort={changeSort} />
                 </th>
-                <th scope="col" aria-sort={sort.key === "lane" ? (sort.direction === "asc" ? "ascending" : "descending") : undefined}>
+                <th className="numeric-cell" scope="col" aria-sort={sort.key === "lane" ? (sort.direction === "asc" ? "ascending" : "descending") : undefined}>
                   <SortButton label="Lane" column="lane" sort={sort} onSort={changeSort} />
                 </th>
-                <th scope="col" aria-sort={sort.key === "temperature" ? (sort.direction === "asc" ? "ascending" : "descending") : undefined}>
+                <th className="numeric-cell" scope="col" aria-sort={sort.key === "temperature" ? (sort.direction === "asc" ? "ascending" : "descending") : undefined}>
                   <SortButton label="Temp" column="temperature" sort={sort} onSort={changeSort} />
                 </th>
-                <th scope="col" aria-sort={sort.key === "width" ? (sort.direction === "asc" ? "ascending" : "descending") : undefined}>
+                <th className="numeric-cell" scope="col" aria-sort={sort.key === "width" ? (sort.direction === "asc" ? "ascending" : "descending") : undefined}>
                   <SortButton label="Eye width" column="width" sort={sort} onSort={changeSort} />
                 </th>
-                <th scope="col" aria-sort={sort.key === "height" ? (sort.direction === "asc" ? "ascending" : "descending") : undefined}>
+                <th className="numeric-cell" scope="col" aria-sort={sort.key === "height" ? (sort.direction === "asc" ? "ascending" : "descending") : undefined}>
                   <SortButton label="Eye height" column="height" sort={sort} onSort={changeSort} />
                 </th>
               </tr>
