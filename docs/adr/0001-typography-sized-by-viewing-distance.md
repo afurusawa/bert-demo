@@ -39,11 +39,13 @@ authority over legibility.
 ## Consequences
 
 **Type.** A 1.2 modular ramp anchored at 19px — 16, 19, 23, 27, 33, 39 — with
-15px as an absolute floor. This collapses 13 distinct sizes to 6: the previous
-near-identical steps were why hierarchy leaned on faded text instead of on size.
-Sizes are expressed in `rem` so the reader's own browser font-size setting is
-honoured rather than discarded. Line height 1.5 body, 1.3 headings, 1.4 table
-cells.
+15px as an absolute floor. The six-step ramp remains the primary scale; compact
+metadata has one named 15px floor token so uppercase context can stay visually
+subordinate without returning to illegible 9px text. This collapses the main
+type hierarchy from 13 distinct sizes to 6: the previous near-identical steps
+were why hierarchy leaned on faded text instead of on size. Sizes are expressed
+in `rem` so the reader's own browser font-size setting is honoured rather than
+discarded. Line height 1.5 body, 1.3 headings, 1.4 table cells.
 
 **Colour.** 7:1 for body text, 4.5:1 at 24px and above, 3:1 non-text; the
 conformance *claim* remains AA. Calibration is age-inclusive, at the 20–22
@@ -52,11 +54,12 @@ alongside acuity. `--faint` is retired as a text colour and survives only for
 borders and swatches.
 
 **Labels.** The single `.eyebrow` class was doing two jobs. Field labels (naming
-a value that would otherwise be an unlabelled number) are kept and made legible:
-16px, tracking reduced 0.14em → 0.06em, weight 500. Section kickers that merely
-paraphrase the heading beneath them are deleted. Uppercase is retained
-deliberately — it is the instrument-software register — but it is no longer
-asked to create hierarchy at 9px.
+a value that would otherwise be an unlabelled number) are kept and made legible
+at the compact 15px metadata floor, with tracking reduced 0.14em → 0.04em and
+regular weight. Section kickers that merely paraphrase the heading beneath them are
+deleted. Uppercase is retained deliberately — it is the instrument-software
+register — but it is no longer asked to create hierarchy at 9px or compete with
+the 19px body step.
 
 **Density.** Where larger type collides with information density, density is
 preserved by showing fewer things, not by shrinking text. The run table drops
