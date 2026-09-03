@@ -2,6 +2,9 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
+  FONT_WEIGHTS,
+  HAIRLINE_WIDTH_PX,
+  LABEL_STYLES,
   LARGE_TEXT_CONTRAST_RATIO,
   MINIMUM_SIZE_PX,
   NON_TEXT_CONTRAST_RATIO,
@@ -114,6 +117,11 @@ describe("design tokens", () => {
     expect(block).toContain(`--ink-primary: ${TEXT_INKS.primary};`);
     expect(block).toContain(`--target-standalone-action: ${TARGET_SIZES.standaloneAction}px;`);
     expect(block).toContain(`--plot-text-tick-label: ${PLOT_TEXT_UNITS.tickLabel}px;`);
+    expect(block).toContain(`--weight-medium: ${FONT_WEIGHTS.medium};`);
+    expect(block).toContain(`--tracking-field-label: ${LABEL_STYLES.fieldLabel.trackingEm}em;`);
+    expect(block).toContain(`--hairline: ${HAIRLINE_WIDTH_PX}px;`);
+    expect(block).toContain("--measure-lede: 41.5625rem;");
+    expect(block).toContain("--page-max-width: 90rem;");
   });
 
   it("has the committed stylesheet block that the tokens currently produce", () => {

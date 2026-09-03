@@ -37,6 +37,64 @@ export const LINE_HEIGHTS = {
   tableCell: 1.4,
 } as const;
 
+export const FONT_WEIGHTS = {
+  regular: 400,
+  medium: 500,
+  strong: 600,
+} as const;
+
+/**
+ * The two label classes that replace the single overloaded eyebrow. A field
+ * label names a value that would otherwise be an unlabelled number; a section
+ * kicker paraphrases the heading beneath it. Both sit at the label step:
+ * uppercase is kept as the instrument-software register, but it is no longer
+ * asked to carry hierarchy at 9px.
+ */
+export const LABEL_STYLES = {
+  fieldLabel: { trackingEm: 0.06, weight: FONT_WEIGHTS.medium },
+  sectionKicker: { trackingEm: 0.02, weight: FONT_WEIGHTS.medium },
+} as const;
+
+/** Bringhurst's comfortable measure, in characters. */
+export const MEASURE_BAND_CHARACTERS = { minimum: 45, maximum: 75 } as const;
+
+/** Mean glyph advance of IBM Plex Sans mixed-case prose, as a fraction of the size. */
+export const AVERAGE_CHARACTER_WIDTH_EM = 0.53;
+
+/** The measure the lede is set to; see MEASURE_BAND_CHARACTERS. */
+export const LEDE_MEASURE_CHARACTERS = 66;
+
+export const LEDE_MEASURE_PX = Math.round(
+  LEDE_MEASURE_CHARACTERS * AVERAGE_CHARACTER_WIDTH_EM * TYPE_RAMP.body,
+);
+
+/** The page frame. Emitted in rem, so raising the font size widens the gutters too. */
+export const LAYOUT = {
+  pageMaxWidth: 1440,
+  pageMinWidth: 960,
+} as const;
+
+/** Chrome measured in device pixels rather than in type: hairlines, rings, radii. */
+export const HAIRLINE_WIDTH_PX = 1;
+
+export const FOCUS_RING = {
+  width: 3,
+  offset: 3,
+} as const;
+
+export const RADII = {
+  control: 4,
+} as const;
+
+/**
+ * Layout breakpoints, written into the stylesheet in em rather than px so a
+ * reader who has raised their font size reaches the roomier layout sooner.
+ */
+export const BREAKPOINTS = {
+  narrow: 1120,
+  tight: 960,
+} as const;
+
 /** Every spacing value in the interface, on a 4px grid. */
 export const SPACING_SCALE = [4, 8, 12, 16, 20, 24, 32, 40, 48, 64] as const;
 
@@ -167,6 +225,16 @@ export function renderTokenBlock(): string {
   const declarations = [
     ...Object.entries(TYPE_RAMP).map(([name, size]) => `--text-${kebabCase(name)}: ${rem(size)};`),
     ...Object.entries(LINE_HEIGHTS).map(([name, height]) => `--leading-${kebabCase(name)}: ${height};`),
+    ...Object.entries(FONT_WEIGHTS).map(([name, weight]) => `--weight-${kebabCase(name)}: ${weight};`),
+    ...Object.entries(LABEL_STYLES).map(
+      ([name, style]) => `--tracking-${kebabCase(name)}: ${style.trackingEm}em;`,
+    ),
+    `--measure-lede: ${rem(LEDE_MEASURE_PX)};`,
+    ...Object.entries(LAYOUT).map(([name, width]) => `--${kebabCase(name)}: ${rem(width)};`),
+    `--hairline: ${HAIRLINE_WIDTH_PX}px;`,
+    `--focus-ring-width: ${FOCUS_RING.width}px;`,
+    `--focus-ring-offset: ${FOCUS_RING.offset}px;`,
+    `--radius-control: ${RADII.control}px;`,
     ...SPACING_SCALE.map((step) => `--space-${step}: ${step}px;`),
     ...Object.entries(SURFACES).map(([name, color]) => `--surface-${kebabCase(name)}: ${color};`),
     ...Object.entries(TEXT_INKS).map(([name, color]) => `--ink-${kebabCase(name)}: ${color};`),
