@@ -86,9 +86,16 @@ a {
   color: inherit;
 }
 
-button,
-a:focus-visible {
-  outline: 3px solid rgba(89, 106, 108, 0.28);
+button:focus,
+a:focus,
+.plot-hit-area:focus {
+  outline: none;
+}
+
+button:focus-visible,
+a:focus-visible,
+.plot-hit-area:focus-visible {
+  outline: 3px solid var(--edge-focus-ring);
   outline-offset: 3px;
 }
 
@@ -124,6 +131,7 @@ button {
   align-items: center;
   gap: 12px;
   min-width: 254px;
+  min-height: var(--target-standalone-action);
   text-decoration: none;
 }
 
@@ -178,6 +186,8 @@ button {
   position: relative;
   display: inline-flex;
   align-items: center;
+  min-width: var(--target-standalone-action);
+  min-height: var(--target-standalone-action);
   padding: 0 20px;
   color: var(--muted);
   font-size: 13px;
@@ -425,6 +435,8 @@ h2 {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  min-width: var(--target-in-context-control);
+  min-height: var(--target-in-context-control);
   padding: 0;
   border: 0;
   background: transparent;
@@ -448,6 +460,10 @@ h2 {
 }
 
 .row-link {
+  display: inline-flex;
+  align-items: center;
+  min-width: var(--target-in-context-control);
+  min-height: var(--target-in-context-control);
   color: var(--accent-dark);
   font-weight: 500;
   text-decoration: none;
@@ -519,6 +535,10 @@ h2 {
 }
 
 .open-link {
+  display: inline-flex;
+  align-items: center;
+  min-width: var(--target-in-context-control);
+  min-height: var(--target-in-context-control);
   color: var(--accent-dark);
   font-size: 12px;
   font-weight: 500;
@@ -591,7 +611,10 @@ h2 {
 }
 
 .back-link {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  min-width: var(--target-standalone-action);
+  min-height: var(--target-standalone-action);
   margin-bottom: 38px;
   color: var(--accent-dark);
   font-size: 12px;
@@ -1078,6 +1101,10 @@ h2 {
 }
 
 .comparison-source-strip a {
+  display: inline-flex;
+  align-items: center;
+  min-width: var(--target-standalone-action);
+  min-height: var(--target-standalone-action);
   width: fit-content;
   color: var(--accent-dark);
   font-size: 11px;
@@ -1621,7 +1648,8 @@ h2 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 36px;
+  min-width: var(--target-standalone-action);
+  min-height: var(--target-standalone-action);
   padding: 0 14px;
   border-radius: 3px;
   font-size: 12px;
@@ -1631,7 +1659,7 @@ h2 {
 
 .secondary-button {
   background: var(--paper);
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--edge-border-strong);
   color: var(--accent-dark);
 }
 
@@ -1641,8 +1669,8 @@ h2 {
 
 .primary-button {
   background: var(--accent);
-  border: 1px solid var(--accent);
-  color: white;
+  border: 1px solid var(--ink-on-accent);
+  color: var(--ink-on-accent);
 }
 
 .primary-button:hover {
