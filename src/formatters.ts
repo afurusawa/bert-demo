@@ -14,3 +14,10 @@ export function formatSigned(value: number, maximumFractionDigits = 1): string {
 export function formatBer(value: number, fractionDigits = 2): string {
   return value.toExponential(fractionDigits).replace("e+", "e");
 }
+
+export function formatPercent(value: number, maximumFractionDigits = 0): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "percent",
+    maximumFractionDigits,
+  }).format(value);
+}

@@ -6,6 +6,8 @@
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/comparison", "destination": "/index.html" },
+    { "source": "/diagnosis", "destination": "/index.html" },
+    { "source": "/diagnosis/method", "destination": "/index.html" },
     { "source": "/runs", "destination": "/index.html" },
     { "source": "/runs/:path*", "destination": "/index.html" }
   ],

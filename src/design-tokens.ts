@@ -182,6 +182,8 @@ export const PLOT_TEXT_UNITS = {
   axisTitle: 14,
   annotation: 15,
   annotationSecondary: 14,
+  diagramTitle: 19,
+  diagramBody: 16,
 } as const;
 
 function relativeLuminance(color: string): number {
