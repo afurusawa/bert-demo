@@ -49,6 +49,8 @@
   --plot-text-axis-title: 14px;
   --plot-text-annotation: 15px;
   --plot-text-annotation-secondary: 14px;
+  --plot-text-diagram-title: 19px;
+  --plot-text-diagram-body: 16px;
 }
 /* end generated tokens */
 
@@ -2018,4 +2020,537 @@ h2 {
     grid-row: auto;
     justify-self: start;
   }
+}
+
+/* diagnosis surface: written against the tokens, not the legacy variables */
+
+.diagnosis-page .section-heading,
+.diagnosis-method-page .section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-32);
+  margin-bottom: var(--space-16);
+}
+
+.diagnosis-page .section-help {
+  margin: 0 0 var(--space-4);
+  max-width: var(--measure-lede);
+  color: var(--ink-secondary);
+  font-size: var(--text-label);
+  line-height: var(--leading-table-cell);
+}
+
+.diagnosis-page .compact-heading,
+.diagnosis-method-page .compact-heading {
+  margin-bottom: 0;
+  padding: var(--space-16) var(--space-20);
+  border-bottom: var(--hairline) solid var(--edge-border);
+}
+
+.diagnosis-page .detail-panel,
+.diagnosis-method-page .detail-panel {
+  background: var(--surface-paper);
+  border: var(--hairline) solid var(--edge-border);
+}
+
+.diagnosis-page .plot-summary {
+  margin: 0;
+  color: var(--ink-secondary);
+  font-size: var(--text-label);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.diagnosis-page .confidence-note,
+.diagnosis-method-page .confidence-note {
+  gap: var(--space-12);
+  margin: var(--space-20);
+  padding: var(--space-16);
+  background: var(--surface-soft);
+  color: var(--ink-secondary);
+}
+
+.diagnosis-page .confidence-note p,
+.diagnosis-method-page .confidence-note p {
+  font-size: var(--text-label);
+  line-height: var(--leading-body);
+}
+
+.diagnosis-callout {
+  margin-top: var(--space-40);
+}
+
+.diagnosis-callout h2 {
+  font-size: var(--text-heading);
+}
+
+.diagnosis-callout p {
+  margin: var(--space-4) 0 0;
+  max-width: var(--measure-lede);
+  color: var(--ink-secondary);
+  font-size: var(--text-label);
+  line-height: var(--leading-body);
+}
+
+.review-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: var(--space-24);
+  margin-top: var(--space-40);
+  align-items: start;
+}
+
+.review-context {
+  margin: var(--space-16) var(--space-20) 0;
+  color: var(--ink-secondary);
+  font-size: var(--text-label);
+  line-height: var(--leading-body);
+}
+
+.shortlist {
+  margin: var(--space-16) 0 0;
+  padding: 0 var(--space-20);
+  list-style: none;
+}
+
+.shortlist-item + .shortlist-item {
+  margin-top: var(--space-16);
+  padding-top: var(--space-16);
+  border-top: var(--hairline) solid var(--edge-border);
+}
+
+.shortlist-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-12);
+  margin-bottom: var(--space-8);
+}
+
+.shortlist-rank {
+  min-width: var(--space-24);
+  color: var(--ink-secondary);
+  font-size: var(--text-metadata);
+  font-variant-numeric: tabular-nums;
+}
+
+.shortlist-label {
+  flex: 1;
+  color: var(--ink-primary);
+  font-size: var(--text-body);
+}
+
+.shortlist-item.leading .shortlist-label {
+  font-weight: var(--weight-strong);
+}
+
+.shortlist-figure {
+  color: var(--ink-primary);
+  font-size: var(--text-body);
+  font-variant-numeric: tabular-nums;
+}
+
+.shortlist-signature {
+  margin: var(--space-8) 0 0;
+  color: var(--ink-secondary);
+  font-size: var(--text-label);
+  line-height: var(--leading-body);
+}
+
+.confidence-track {
+  display: block;
+  width: 100%;
+  height: var(--space-8);
+  background: var(--surface-soft);
+  border-radius: var(--radius-control);
+  overflow: hidden;
+}
+
+.confidence-fill {
+  display: block;
+  height: 100%;
+  background: var(--surface-accent);
+}
+
+.review-action {
+  margin: var(--space-24) var(--space-20) 0;
+}
+
+.review-action p {
+  margin: var(--space-8) 0 0;
+  color: var(--ink-primary);
+  font-size: var(--text-label);
+  line-height: var(--leading-body);
+}
+
+.review-evidence {
+  margin: var(--space-24) var(--space-20) var(--space-24);
+}
+
+.evidence-list-block {
+  margin: var(--space-12) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.evidence-row + .evidence-row {
+  margin-top: var(--space-12);
+  padding-top: var(--space-12);
+  border-top: var(--hairline) solid var(--edge-border);
+}
+
+.evidence-row-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-16);
+}
+
+.evidence-feature {
+  color: var(--ink-primary);
+  font-size: var(--text-label);
+}
+
+.evidence-value {
+  color: var(--ink-primary);
+  font-size: var(--text-label);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--weight-medium);
+}
+
+.evidence-comparison {
+  margin: var(--space-4) 0 0;
+  color: var(--ink-secondary);
+  font-size: var(--text-metadata);
+  line-height: var(--leading-body);
+}
+
+.diagnosis-note-panel {
+  padding: 0 var(--space-20) var(--space-4);
+}
+
+.diagnosis-note-panel .compact-heading {
+  margin: 0 calc(-1 * var(--space-20)) var(--space-16);
+}
+
+.diagnosis-note-panel p {
+  margin: 0 0 var(--space-16);
+  color: var(--ink-primary);
+  font-size: var(--text-label);
+  line-height: var(--leading-body);
+}
+
+.diagnosis-note-panel .confidence-note {
+  margin: var(--space-20) 0;
+}
+
+.diagnosis-page .table-section {
+  margin-top: var(--space-40);
+}
+
+.queue-frame {
+  max-height: 30rem;
+  overflow-y: auto;
+}
+
+.queue-row.selected td {
+  background: var(--surface-soft);
+}
+
+.queue-select {
+  display: block;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--ink-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.queue-select:hover .primary-value {
+  text-decoration: underline;
+}
+
+.confidence-cell {
+  display: grid;
+  grid-template-columns: minmax(0, 6rem) auto auto;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.confidence-figure {
+  font-variant-numeric: tabular-nums;
+}
+
+.call-chip {
+  padding: 0 var(--space-8);
+  border: var(--hairline) solid var(--edge-border);
+  border-radius: var(--radius-control);
+  color: var(--ink-secondary);
+  font-size: var(--text-metadata);
+  white-space: nowrap;
+}
+
+.call-chip-firm {
+  border-color: var(--edge-border-strong);
+  background: var(--surface-soft);
+}
+
+.call-chip-open {
+  border-style: dashed;
+}
+
+.runner-up-cell {
+  color: var(--ink-secondary);
+}
+
+.chart-panel {
+  margin-top: var(--space-40);
+}
+
+.chart-note {
+  margin: 0;
+  padding: 0 var(--space-20) var(--space-24);
+  max-width: var(--measure-lede);
+  color: var(--ink-secondary);
+  font-size: var(--text-label);
+  line-height: var(--leading-body);
+}
+
+.chart-panel .table-frame {
+  border-right: 0;
+  border-bottom: 0;
+  border-left: 0;
+}
+
+.diagnosis-figure {
+  margin: 0;
+  padding: var(--space-20);
+}
+
+.diagnosis-plot {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.diagnosis-gridline {
+  stroke: var(--edge-border);
+  stroke-width: 1;
+}
+
+.diagnosis-tick-label,
+.diagnosis-axis-title,
+.diagnosis-annotation,
+.diagnosis-cell-label {
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.diagnosis-tick-label {
+  fill: var(--ink-secondary);
+  font-size: var(--plot-text-tick-label);
+}
+
+.diagnosis-axis-title {
+  fill: var(--ink-secondary);
+  font-size: var(--plot-text-axis-title);
+  letter-spacing: var(--tracking-field-label);
+  text-transform: uppercase;
+}
+
+.diagnosis-annotation {
+  fill: var(--ink-primary);
+  font-size: var(--plot-text-annotation);
+  font-weight: var(--weight-medium);
+}
+
+.diagnosis-annotation-note {
+  fill: var(--ink-secondary);
+  font-size: var(--plot-text-annotation-secondary);
+  font-weight: var(--weight-regular);
+}
+
+.diagnosis-cell-label {
+  font-size: var(--plot-text-annotation-secondary);
+}
+
+.diagnosis-curve {
+  fill: none;
+  stroke: var(--surface-accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.diagnosis-curve-marker {
+  fill: var(--surface-accent);
+  stroke: var(--surface-paper);
+  stroke-width: 2;
+}
+
+.diagnosis-matrix-border {
+  fill: none;
+  stroke: var(--edge-border-strong);
+  stroke-width: 1;
+}
+
+.diagnosis-legend {
+  display: flex;
+  gap: var(--space-24);
+  padding: 0 0 var(--space-8);
+  color: var(--ink-secondary);
+  font-size: var(--text-label);
+}
+
+.diagnosis-legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.diagnosis-legend-mark {
+  display: block;
+  width: var(--space-24);
+  height: 0;
+  border-top-width: 2px;
+  border-top-color: var(--surface-accent);
+}
+
+.legend-mark-first {
+  border-top-style: solid;
+}
+
+.legend-mark-second {
+  border-top-style: dashed;
+  border-top-color: var(--edge-border-strong);
+}
+
+.diagram-box {
+  fill: var(--surface-paper);
+  stroke: var(--edge-border);
+  stroke-width: 1;
+}
+
+.diagram-box-accent {
+  fill: var(--surface-accent);
+  stroke: var(--surface-accent);
+}
+
+.diagram-step-title {
+  fill: var(--ink-primary);
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-size: var(--plot-text-diagram-title);
+  font-weight: var(--weight-strong);
+}
+
+.diagram-title-on-accent,
+.diagram-detail-on-accent {
+  fill: var(--ink-on-accent);
+}
+
+.diagram-detail-on-accent {
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-size: var(--plot-text-diagram-body);
+}
+
+.diagram-step-detail {
+  margin: 0;
+  color: var(--ink-secondary);
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-size: var(--plot-text-diagram-body);
+  line-height: var(--leading-body);
+}
+
+.diagram-arrow {
+  fill: none;
+  stroke: var(--edge-border-strong);
+  stroke-width: 2;
+}
+
+.diagram-arrowhead {
+  fill: var(--edge-border-strong);
+  stroke: none;
+}
+
+.diagram-arrow-label {
+  fill: var(--ink-secondary);
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-size: var(--plot-text-diagram-body);
+}
+
+.diagram-density {
+  fill: none;
+  stroke-width: 2;
+}
+
+.diagram-density-first {
+  stroke: var(--surface-accent);
+}
+
+.diagram-density-second {
+  stroke: var(--edge-border-strong);
+  stroke-dasharray: 8 6;
+}
+
+.prose-block {
+  margin-top: var(--space-40);
+  padding: var(--space-24) var(--space-24) var(--space-32);
+  background: var(--surface-paper);
+  border: var(--hairline) solid var(--edge-border);
+}
+
+.prose-block h2 {
+  margin: 0 0 var(--space-16);
+  font-size: var(--text-heading-large);
+}
+
+.prose-block > p {
+  max-width: var(--measure-lede);
+  margin: 0 0 var(--space-16);
+  color: var(--ink-primary);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.prose-block > .diagnosis-figure {
+  padding: var(--space-24) 0;
+}
+
+.prose-list {
+  max-width: var(--measure-lede);
+  margin: 0 0 var(--space-16);
+  padding-left: var(--space-20);
+  color: var(--ink-primary);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.prose-list li + li {
+  margin-top: var(--space-12);
+}
+
+.diagnosis-method-page .detail-actions {
+  padding: var(--space-8) 0 0;
+  justify-content: flex-start;
+}
+
+@media (max-width: 70em) {
+  .review-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .confidence-cell {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+    justify-items: start;
+  }
+}
+
+.review-panel {
+  padding-bottom: var(--space-24);
+}
+
+.review-panel .shortlist-item.leading .shortlist-figure {
+  font-weight: var(--weight-strong);
 }

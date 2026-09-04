@@ -6,6 +6,9 @@ import {
   type ScanRun,
 } from "./scan-model";
 import { loadRuns } from "./run-loader";
+import { loadDiagnosisCases } from "./diagnosis-loader";
+import { buildWorkspace, type DiagnosisCase } from "./diagnosis-model";
+import { DiagnosisDashboard, DiagnosisMethod } from "./diagnosis-page";
 import { EyeHeatmap } from "./eye-plot";
 import { ComparisonPlot } from "./comparison-plot";
 import { formatBer, formatNumber, formatSigned } from "./formatters";
@@ -14,6 +17,8 @@ type Route =
   | { kind: "history" }
   | { kind: "run"; runId: string }
   | { kind: "comparison" }
+  | { kind: "diagnosis" }
+  | { kind: "diagnosis-method" }
   | { kind: "not-found" };
 
 type SortKey =
@@ -42,6 +47,14 @@ function getRoute(): Route {
 
   if (pathname === "/comparison") {
     return { kind: "comparison" };
+  }
+
+  if (pathname === "/diagnosis") {
+    return { kind: "diagnosis" };
+  }
+
+  if (pathname === "/diagnosis/method") {
+    return { kind: "diagnosis-method" };
   }
 
   return { kind: "not-found" };
@@ -121,6 +134,16 @@ function AppShell({ children }: { children: React.ReactNode }) {
           <nav className="primary-nav" aria-label="Primary navigation">
             <a className={route.kind === "history" ? "nav-link active" : "nav-link"} href="/">
               Run history
+            </a>
+            <a
+              className={
+                route.kind === "diagnosis" || route.kind === "diagnosis-method"
+                  ? "nav-link active"
+                  : "nav-link"
+              }
+              href="/diagnosis"
+            >
+              Diagnosis
             </a>
           </nav>
           <div className="topbar-status">
@@ -529,21 +552,21 @@ function ComparisonView({ baseline, later }: { baseline: ScanRun; later: ScanRun
   );
 }
 
-function LoadingState() {
+function LoadingState({ title = "Opening run history…" }: { title?: string }) {
   return (
     <main className="page-width page-content loading-state" aria-live="polite">
       <span className="loading-bar" />
       <p className="eyebrow">LOADING STATIC FIXTURES</p>
-      <h1>Opening run history…</h1>
+      <h1>{title}</h1>
     </main>
   );
 }
 
-function ErrorState() {
+function ErrorState({ title = "Run history is unavailable." }: { title?: string }) {
   return (
     <main className="page-width page-content error-state">
       <p className="eyebrow">FIXTURE LOAD ERROR</p>
-      <h1>Run history is unavailable.</h1>
+      <h1>{title}</h1>
       <p className="lede">The static measurement fixture could not be opened. Refresh to try again.</p>
       <button className="primary-button" onClick={() => window.location.reload()}>Refresh</button>
     </main>
@@ -561,7 +584,51 @@ function NotFound() {
   );
 }
 
-export default function App() {
+/**
+ * The diagnosis surfaces read a different fixture and fit their model from it
+ * on load, so they carry their own loading seam rather than waiting on scans.
+ */
+function DiagnosisRoute({ showMethod }: { showMethod: boolean }) {
+  const [cases, setCases] = useState<DiagnosisCase[] | null>(null);
+  const [hasLoadError, setHasLoadError] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    loadDiagnosisCases()
+      .then((loadedCases) => {
+        if (active) {
+          setCases(loadedCases);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setHasLoadError(true);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const workspace = useMemo(() => (cases ? buildWorkspace(cases) : null), [cases]);
+
+  if (hasLoadError) {
+    return <ErrorState title="The labelled cases are unavailable." />;
+  }
+
+  if (!workspace) {
+    return <LoadingState title="Fitting the model from stored examples…" />;
+  }
+
+  return showMethod ? (
+    <DiagnosisMethod workspace={workspace} />
+  ) : (
+    <DiagnosisDashboard workspace={workspace} />
+  );
+}
+
+function RunsRoute({ route }: { route: Route }) {
   const [runs, setRuns] = useState<ScanRun[] | null>(null);
   const [hasLoadError, setHasLoadError] = useState(false);
 
@@ -584,26 +651,44 @@ export default function App() {
     };
   }, []);
 
-  let content: React.ReactNode;
   if (hasLoadError) {
-    content = <ErrorState />;
-  } else if (!runs) {
-    content = <LoadingState />;
-  } else {
-    const route = getRoute();
-    if (route.kind === "history") {
-      content = <RunHistory runs={runs} />;
-    } else if (route.kind === "run") {
-      const selectedRun = runs.find((run) => run.id === route.runId);
-      content = selectedRun ? <RunDetail run={selectedRun} metrics={calculateEyeMetrics(selectedRun)} /> : <NotFound />;
-    } else if (route.kind === "comparison") {
-      const baseline = runs.find((run) => run.id === COMPARISON_BASELINE_ID);
-      const later = runs.find((run) => run.id === COMPARISON_LATER_ID);
-      content = baseline && later ? <ComparisonView baseline={baseline} later={later} /> : <NotFound />;
-    } else {
-      content = <NotFound />;
-    }
+    return <ErrorState />;
   }
+
+  if (!runs) {
+    return <LoadingState />;
+  }
+
+  if (route.kind === "history") {
+    return <RunHistory runs={runs} />;
+  }
+
+  if (route.kind === "run") {
+    const selectedRun = runs.find((run) => run.id === route.runId);
+    return selectedRun ? (
+      <RunDetail run={selectedRun} metrics={calculateEyeMetrics(selectedRun)} />
+    ) : (
+      <NotFound />
+    );
+  }
+
+  if (route.kind === "comparison") {
+    const baseline = runs.find((run) => run.id === COMPARISON_BASELINE_ID);
+    const later = runs.find((run) => run.id === COMPARISON_LATER_ID);
+    return baseline && later ? <ComparisonView baseline={baseline} later={later} /> : <NotFound />;
+  }
+
+  return <NotFound />;
+}
+
+export default function App() {
+  const route = getRoute();
+  const content =
+    route.kind === "diagnosis" || route.kind === "diagnosis-method" ? (
+      <DiagnosisRoute showMethod={route.kind === "diagnosis-method"} />
+    ) : (
+      <RunsRoute route={route} />
+    );
 
   return <AppShell>{content}</AppShell>;
 }
