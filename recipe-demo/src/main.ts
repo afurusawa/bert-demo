@@ -112,23 +112,32 @@ function maskMarkup(inspection: HeadInspection): string {
     </table>`;
 }
 
-function recipeRow(label: string, recipe: Recipe | null, note = ""): string {
+function recipeRow(label: string, recipe: Recipe | null, note = "", unavailable = "Unavailable for this claimed family"): string {
   const cells = recipe
     ? recipe.map((value) => `<td>${formatRecipeValue(value)}</td>`).join("")
-    : `<td class="unavailable" colspan="12">Unavailable for this claimed family</td>`;
+    : `<td class="unavailable" colspan="12">${escapeHtml(unavailable)}</td>`;
   return `<tr><th scope="row">${escapeHtml(label)}</th>${cells}<td class="row-note">${escapeHtml(note)}</td></tr>`;
 }
 
 function recipeMarkup(inspection: HeadInspection): string {
   const proposal = inspection.proposal;
-  const mappedNote = proposal.status === "refused" ? "Refused; mapped-with-fallback scoring uses copy last." : "Unchecked proposal. Learned moving registers; skipped registers use the pooled base.";
+  const mappedNote =
+    proposal.status === "refused"
+      ? "Refused proposal. No mapped start is available; mapped-with-fallback scoring uses copy last as the fallback starting point."
+      : "Unchecked proposal. Learned moving registers; skipped registers use the estimated shared base.";
+  const mappedLabel = proposal.status === "refused" ? "mapped start (refused)" : "mapped start (unchecked)";
+  const copyLastLabel = proposal.status === "refused" ? "copy last (fallback starting point)" : "copy last";
+  const copyLastNote =
+    proposal.status === "refused"
+      ? "Fallback starting point after refusal; one fixed last training recipe for the whole held-out batch."
+      : "One fixed last training recipe for the whole held-out batch.";
   return `
     <table class="recipe-table">
       <caption>Starting recipes and hidden completed recipe</caption>
       <thead><tr><th scope="col">recipe</th>${REGISTER_NAMES.map((name) => `<th scope="col">${name}</th>`).join("")}<th scope="col">meaning</th></tr></thead>
       <tbody>
-        ${recipeRow("mapped start (unchecked)", proposal.mappedStart, mappedNote)}
-        ${recipeRow("copy last", proposal.copyLast, "One fixed last training recipe for the whole held-out batch.")}
+        ${recipeRow(mappedLabel, proposal.mappedStart, mappedNote, "No mapped start; the proposal was refused.")}
+        ${recipeRow(copyLastLabel, proposal.copyLast, copyLastNote)}
         ${recipeRow("same-type mean", proposal.sameTypeMean, "Training rows only; no invented family mean.")}
         ${recipeRow("hidden true", inspection.row.hiddenTrueRecipe, "Evaluation evidence, never a fitting input.")}
       </tbody>
@@ -194,11 +203,25 @@ function unknownMarkup(): string {
       <dl class="facts facts-four">
         <div class="fact"><dt>tag</dt><dd>${escapeHtml(inspection.row.tag)}</dd></div>
         <div class="fact"><dt>actual family</dt><dd>${escapeHtml(typeLabel(inspection.row.changeType))}</dd></div>
+        <div class="fact"><dt>claimed type</dt><dd>${escapeHtml(typeLabel(inspection.claimedType))}</dd></div>
         <div class="fact"><dt>zone</dt><dd>${inspection.row.zone}</dd></div>
         ${measurementMarkup(inspection)}
       </dl>
       <p class="refusal-copy">${escapeHtml(inspection.proposal.message)}</p>
-      <p class="small-note">Try this row in the selector above, then change the claimed type. The measurements stay fixed while the claim changes.</p>
+      <div class="unknown-checks">
+        <h3>Same first read under every claimed label</h3>
+        <p class="small-note">These refusals use only the fitted first-read classifier and distance thresholds. The hidden mask is not used to make any decision.</p>
+        <table class="checks-table">
+          <caption>Unknown-family claims remain refused</caption>
+          <thead><tr><th scope="col">claimed type</th><th scope="col">decision</th><th scope="col">visible reason and next step</th></tr></thead>
+          <tbody>${model.evaluation.unknownFamilyChecks
+            .map(
+              (check) =>
+                `<tr><th scope="row">${escapeHtml(typeLabel(check.claimedType))}</th><td><strong>REFUSED</strong></td><td class="check-reason">${escapeHtml(check.proposal.message)}</td></tr>`,
+            )
+            .join("")}</tbody>
+        </table>
+      </div>
     </section>`;
 }
 
@@ -223,7 +246,7 @@ function selectedMarkup(inspection: HeadInspection): string {
         <div class="fact"><dt>zone</dt><dd>${inspection.row.zone}</dd></div>
         ${measurementMarkup(inspection)}
       </dl>
-      <p class="decision-copy">${escapeHtml(proposal.message)}</p>
+      <p class="decision-copy"><strong>Claimed type: ${escapeHtml(typeLabel(inspection.claimedType))}.</strong> ${escapeHtml(proposal.message)}</p>
       ${selectedMetrics ? `<p class="small-note">Completed held-out log BER: <strong>${formatBer(finalBer)}</strong>. Mapped-with-fallback is scored from the start recipe, not this completed result.</p>` : ""}
       ${maskMarkup(inspection)}
       ${recipeMarkup(inspection)}
@@ -250,7 +273,7 @@ function render(): void {
       <section class="intro">
         <p class="eyebrow">One-page inspection flow</p>
         <h2>Choose a held-out head, then compare the proposed start with two baselines.</h2>
-        <p>Training fits the shared base, register mask, and small first-read predictors. The test row remains unseen during fitting; its hidden mask and recipe are shown only so the viewer can inspect the unchecked proposal.</p>
+        <p>Training fits the shared base, register mask, and small first-read predictors. A normalized nearest-centroid check compares the four first-read measurements with training populations before a map is offered. The test row remains unseen during fitting; its hidden mask and recipe are shown only so the viewer can inspect the unchecked proposal.</p>
       </section>
 
       <section class="control-panel" aria-labelledby="controls-heading">

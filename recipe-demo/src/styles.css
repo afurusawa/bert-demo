@@ -127,6 +127,12 @@ tbody th { text-align: left; white-space: nowrap; }
 .bar-fill { display: block; height: 100%; min-width: 2px; background: var(--accent); }
 
 .summary-table { max-width: 780px; }
+.unknown-checks { margin-top: var(--space-6); }
+.unknown-checks h3 { margin-bottom: var(--space-1); }
+.checks-table { table-layout: fixed; }
+.checks-table th:first-child { width: 190px; }
+.checks-table th:nth-child(2) { width: 130px; }
+.checks-table .check-reason { color: var(--refusal); text-align: left; }
 .unknown-card { background: #fffaf9; border-color: var(--refusal); }
 .unknown-card .facts { background: var(--refusal); }
 .limits { max-width: 900px; padding: var(--space-6) 0 0; border-top: 1px solid var(--strong-line); }
