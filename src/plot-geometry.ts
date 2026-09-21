@@ -1,7 +1,23 @@
 import { EYE_TARGET_BER, type AxisSpec } from "./scan-model";
+import { PLOT_TEXT_UNITS } from "./design-tokens";
 
 export const VIEWBOX_WIDTH = 1_000;
 export const VIEWBOX_HEIGHT = 520;
+export const PLOT_TEXT = {
+  tickLabel: PLOT_TEXT_UNITS.tickLabel,
+  axisTitle: PLOT_TEXT_UNITS.axisTitle,
+  annotation: PLOT_TEXT_UNITS.annotation,
+  annotationSecondary: PLOT_TEXT_UNITS.annotationSecondary,
+} as const;
+export const CONTOUR_ANNOTATION = {
+  width: 240,
+  height: 40,
+  paddingX: 12,
+  firstBaseline: PLOT_TEXT.annotation + 4,
+  secondBaseline: PLOT_TEXT.annotation + PLOT_TEXT.annotationSecondary + 4,
+  rightOffset: 12,
+  topOffset: 12,
+} as const;
 export const PLOT = {
   left: 72,
   top: 20,
