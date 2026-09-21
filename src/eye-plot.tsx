@@ -5,12 +5,14 @@ import {
   type DerivedCell,
   type ScanRun,
 } from "./scan-model";
+import { SURFACES } from "./design-tokens";
 import {
   axisSamplePosition,
   axisValue,
   buildContourPath,
   cellIndexFromPointer,
   cellBounds,
+  CONTOUR_ANNOTATION,
   moveSelection,
   PLOT,
   samplePoint,
@@ -91,7 +93,7 @@ function buildPlotData(run: ScanRun): PlotData {
 function ReadoutValue({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="plot-readout-value">
-      <span>{label}</span>
+      <span className="field-label">{label}</span>
       <strong>{children}</strong>
     </div>
   );
@@ -102,21 +104,26 @@ function PlotReadout({ cell, bitsTested }: { cell: PlotCell; bitsTested: number 
     <section className="plot-readout" aria-labelledby="plot-readout-title">
       <div className="plot-readout-heading">
         <div>
-          <p className="eyebrow">CROSSHAIR READOUT</p>
+          <p className="section-kicker">CROSSHAIR READOUT</p>
           <h3 id="plot-readout-title">Selected cell</h3>
         </div>
         <span className="plot-cell-index">
           {cell.phaseIndex + 1} / {cell.thresholdIndex + 1}
         </span>
       </div>
+      <p className="visually-hidden" aria-live="polite" aria-atomic="true">
+        Selected cell: phase {formatSigned(cell.phasePs)} ps, threshold {formatSigned(cell.thresholdMv)} mV. {cell.derived.isCensored
+          ? `No errors observed; one-sided 95% upper bound ${formatBer(cell.derived.upperConfidenceBer)}.`
+          : `Observed BER ${formatBer(cell.derived.observedBer!)}; one-sided 95% upper bound ${formatBer(cell.derived.upperConfidenceBer)}.`}
+      </p>
       <div className="plot-coordinate-grid">
         <div className="plot-coordinate">
-          <span>Phase</span>
+          <span className="field-label">Phase</span>
           <strong>{formatSigned(cell.phasePs)} <small>ps</small></strong>
           <em>{formatSigned(cell.phaseUi, 3)} UI</em>
         </div>
         <div className="plot-coordinate">
-          <span>Threshold</span>
+          <span className="field-label">Threshold</span>
           <strong>{formatSigned(cell.thresholdMv)} <small>mV</small></strong>
           <em>sample voltage</em>
         </div>
@@ -144,7 +151,7 @@ function PlotLegend({ bitsTested }: { bitsTested: number }) {
   return (
     <section className="plot-legend" aria-labelledby="plot-legend-title">
       <div className="plot-sidebar-heading">
-        <p className="eyebrow">LEGEND</p>
+        <p className="section-kicker">LEGEND</p>
         <h3 id="plot-legend-title">95% BER upper bound</h3>
       </div>
       <div className="legend-scale" aria-label="Sequential BER scale from 1e-9 to 1e-1">
@@ -218,7 +225,7 @@ function EyeHeatmap({ run }: { run: ScanRun }) {
     canvas.height = VIEWBOX_HEIGHT * devicePixelRatio;
     context.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
     context.clearRect(0, 0, VIEWBOX_WIDTH, VIEWBOX_HEIGHT);
-    context.fillStyle = "#f7f9f8";
+    context.fillStyle = SURFACES.soft;
     context.fillRect(PLOT.left, PLOT.top, PLOT.width, PLOT.height);
 
     const cellWidth = PLOT.width / run.sweep.phase.steps;
@@ -268,6 +275,7 @@ function EyeHeatmap({ run }: { run: ScanRun }) {
         <svg
           className="plot-overlay"
           viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
+          width="100%"
           preserveAspectRatio="none"
         >
           <rect
@@ -310,10 +318,13 @@ function EyeHeatmap({ run }: { run: ScanRun }) {
           {plotData.zeroErrorPath && <path className="plot-zero-marking" d={plotData.zeroErrorPath} />}
           {plotData.contourPath && <path className="plot-contour-halo" d={plotData.contourPath} />}
           {plotData.contourPath && <path className="plot-contour" d={plotData.contourPath} />}
-          <g className="contour-label" transform={`translate(${PLOT.left + PLOT.width - 173} ${PLOT.top + 12})`}>
-            <rect width="163" height="27" rx="3" />
-            <text x="10" y="12">BER 1e-6</text>
-            <text x="10" y="22">one-sided 95% upper bound</text>
+          <g
+            className="contour-label"
+            transform={`translate(${PLOT.left + PLOT.width - CONTOUR_ANNOTATION.width - CONTOUR_ANNOTATION.rightOffset} ${PLOT.top + CONTOUR_ANNOTATION.topOffset})`}
+          >
+            <rect width={CONTOUR_ANNOTATION.width} height={CONTOUR_ANNOTATION.height} rx="3" />
+            <text x={CONTOUR_ANNOTATION.paddingX} y={CONTOUR_ANNOTATION.firstBaseline}>BER 1e-6</text>
+            <text x={CONTOUR_ANNOTATION.paddingX} y={CONTOUR_ANNOTATION.secondBaseline}>one-sided 95% upper bound</text>
           </g>
           <line
             className="plot-crosshair-shadow"

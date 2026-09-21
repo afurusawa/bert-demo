@@ -340,7 +340,7 @@ function RunHistory({ runs }: { runs: ScanRun[] }) {
 function DetailField({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="detail-field">
-      <dt>{label}</dt>
+      <dt className="field-label">{label}</dt>
       <dd className={mono ? "mono-value" : undefined}>{value}</dd>
     </div>
   );
@@ -352,11 +352,11 @@ function RunDetail({ run, metrics }: { run: ScanRun; metrics: EyeMetrics }) {
   const totalBits = run.cells.length * run.sweep.bitsTested;
 
   return (
-    <main className="page-width page-content">
+    <main className="page-width page-content run-detail-page">
       <a className="back-link" href="/">← Back to run history</a>
       <section className="detail-heading">
         <div>
-          <p className="eyebrow">RUN RECORD / {formatDate(run.startedAt)}</p>
+          <p className="field-label">RUN RECORD / {formatDate(run.startedAt)}</p>
           <div className="detail-title-line">
             <h1>{run.dut.id} <span>/</span> Lane {run.lane}</h1>
             <span className="fixture-chip">SYNTHETIC FIXTURE</span>
@@ -364,26 +364,26 @@ function RunDetail({ run, metrics }: { run: ScanRun; metrics: EyeMetrics }) {
           <p className="lede">{run.dut.description} · {run.dataRateGbps.toFixed(2)} Gbps · {run.pattern}</p>
         </div>
         <div className="run-id-block">
-          <span className="dataset-key">RUN ID</span>
+          <span className="field-label">RUN ID</span>
           <span className="run-id mono-value">{run.id}</span>
         </div>
       </section>
 
       <section className="metric-grid" aria-label="Eye opening metrics">
         <article className="metric-card">
-          <div className="metric-card-top"><span className="eyebrow">EYE WIDTH</span><span className="metric-mark">↔</span></div>
+          <div className="metric-card-top"><span className="field-label">EYE WIDTH</span><span className="metric-mark">↔</span></div>
           <div className="large-metric">{formatNumber(metrics.widthPs)} <span>ps</span></div>
           <div className="metric-secondary">{metrics.widthUi.toFixed(3)} UI</div>
           <div className="metric-qualifier">at BER {formatBer(metrics.targetBer, 1)} · {metrics.confidence * 100}% confidence</div>
         </article>
         <article className="metric-card">
-          <div className="metric-card-top"><span className="eyebrow">EYE HEIGHT</span><span className="metric-mark">↕</span></div>
+          <div className="metric-card-top"><span className="field-label">EYE HEIGHT</span><span className="metric-mark">↕</span></div>
           <div className="large-metric">{formatNumber(metrics.heightMv)} <span>mV</span></div>
           <div className="metric-secondary">threshold slice {formatNumber(metrics.thresholdSliceMv)} mV</div>
           <div className="metric-qualifier">at BER {formatBer(metrics.targetBer, 1)} · {metrics.confidence * 100}% confidence</div>
         </article>
         <article className="metric-card metric-card-neutral">
-          <div className="metric-card-top"><span className="eyebrow">GRID COVERAGE</span><span className="metric-mark">▦</span></div>
+          <div className="metric-card-top"><span className="field-label">GRID COVERAGE</span><span className="metric-mark">▦</span></div>
           <div className="large-metric">{run.sweep.phase.steps} × {run.sweep.threshold.steps}</div>
           <div className="metric-secondary">{formatNumber(run.cells.length, 0)} sweep points</div>
           <div className="metric-qualifier">{formatNumber(run.sweep.bitsTested, 0)} tested bits per point</div>
@@ -393,7 +393,6 @@ function RunDetail({ run, metrics }: { run: ScanRun; metrics: EyeMetrics }) {
       <section className="detail-panel plot-panel" aria-labelledby="plot-title">
         <div className="section-heading compact-heading plot-heading">
           <div>
-            <p className="eyebrow">MEASUREMENT GRID</p>
             <h2 id="plot-title">BER eye scan</h2>
           </div>
           <p className="plot-summary">
@@ -406,7 +405,7 @@ function RunDetail({ run, metrics }: { run: ScanRun; metrics: EyeMetrics }) {
       <div className="detail-columns">
         <section className="detail-panel" aria-labelledby="context-title">
           <div className="section-heading compact-heading">
-            <div><p className="eyebrow">TEST CONTEXT</p><h2 id="context-title">Run metadata</h2></div>
+            <div><h2 id="context-title">Run metadata</h2></div>
           </div>
           <dl className="detail-grid">
             <DetailField label="Started" value={`${formatDateTime(run.startedAt)} UTC`} />
@@ -422,17 +421,17 @@ function RunDetail({ run, metrics }: { run: ScanRun; metrics: EyeMetrics }) {
             <DetailField label="Phase sweep" value={`${run.sweep.phase.min} to +${run.sweep.phase.max} ps · ${run.sweep.phase.steps} steps`} />
             <DetailField label="Threshold sweep" value={`${run.sweep.threshold.min} to +${run.sweep.threshold.max} mV · ${run.sweep.threshold.steps} steps`} />
           </dl>
-          {run.notes && <div className="notes-block"><span className="dataset-key">NOTES</span><p>{run.notes}</p></div>}
+          {run.notes && <div className="notes-block"><span className="field-label">NOTES</span><p>{run.notes}</p></div>}
         </section>
 
         <section className="detail-panel evidence-panel" aria-labelledby="evidence-title">
           <div className="section-heading compact-heading">
-            <div><p className="eyebrow">RAW MEASUREMENT EVIDENCE</p><h2 id="evidence-title">Stored scan data</h2></div>
+            <div><h2 id="evidence-title">Stored scan data</h2></div>
           </div>
           <div className="evidence-list">
-            <div><span>Raw error count</span><strong>{formatNumber(totalErrors, 0)}</strong></div>
-            <div><span>Zero-error points</span><strong>{formatNumber(zeroErrorPoints, 0)} <small>/ {formatNumber(run.cells.length, 0)}</small></strong></div>
-            <div><span>Tested bits, all points</span><strong>{formatNumber(totalBits, 0)}</strong></div>
+            <div><span className="field-label">Raw error count</span><strong>{formatNumber(totalErrors, 0)}</strong></div>
+            <div><span className="field-label">Zero-error points</span><strong>{formatNumber(zeroErrorPoints, 0)} <small>/ {formatNumber(run.cells.length, 0)}</small></strong></div>
+            <div><span className="field-label">Tested bits, all points</span><strong>{formatNumber(totalBits, 0)}</strong></div>
           </div>
           <div className="confidence-note">
             <span className="confidence-icon" aria-hidden="true">i</span>
