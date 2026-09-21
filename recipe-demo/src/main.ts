@@ -92,6 +92,10 @@ function maskCell(moving: boolean, kind: "learned" | "hidden"): string {
 }
 
 function maskMarkup(inspection: HeadInspection): string {
+  if (inspection.proposal.status === "refused") {
+    return `<p class="refused-map-note"><strong>Refused map:</strong> no learned move/skip instructions are available. ${FULL_APPROXIMATE_SUITE_INSTRUCTION}</p>`;
+  }
+
   const learnedMask =
     inspection.claimedType !== "unknown_family"
       ? model.fitted.types[inspection.claimedType as (typeof KNOWN_TYPES)[number]]?.learnedMask
@@ -112,23 +116,24 @@ function maskMarkup(inspection: HeadInspection): string {
     </table>`;
 }
 
-function recipeRow(label: string, recipe: Recipe | null, note = "", unavailable = "Unavailable for this claimed family"): string {
+function recipeRow(label: string, recipe: Recipe | null, note = "", unavailableMessage = "Unavailable for this claimed family"): string {
   const cells = recipe
     ? recipe.map((value) => `<td>${formatRecipeValue(value)}</td>`).join("")
-    : `<td class="unavailable" colspan="12">${escapeHtml(unavailable)}</td>`;
+    : `<td class="unavailable" colspan="12">${escapeHtml(unavailableMessage)}</td>`;
   return `<tr><th scope="row">${escapeHtml(label)}</th>${cells}<td class="row-note">${escapeHtml(note)}</td></tr>`;
 }
 
 function recipeMarkup(inspection: HeadInspection): string {
   const proposal = inspection.proposal;
+  const isRefused = proposal.status === "refused";
   const mappedNote =
-    proposal.status === "refused"
+    isRefused
       ? "Refused proposal. No mapped start is available; mapped-with-fallback scoring uses copy last as the fallback starting point."
       : "Unchecked proposal. Learned moving registers; skipped registers use the estimated shared base.";
-  const mappedLabel = proposal.status === "refused" ? "mapped start (refused)" : "mapped start (unchecked)";
-  const copyLastLabel = proposal.status === "refused" ? "copy last (fallback starting point)" : "copy last";
+  const mappedLabel = isRefused ? "mapped start (refused)" : "mapped start (unchecked)";
+  const copyLastLabel = isRefused ? "copy last (fallback starting point)" : "copy last";
   const copyLastNote =
-    proposal.status === "refused"
+    isRefused
       ? "Fallback starting point after refusal; one fixed last training recipe for the whole held-out batch."
       : "One fixed last training recipe for the whole held-out batch.";
   return `

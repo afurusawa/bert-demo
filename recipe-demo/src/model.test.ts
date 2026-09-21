@@ -153,6 +153,8 @@ describe("synthetic head recipe model", () => {
     });
     expect(disagreeing.status).toBe("refused");
     expect(disagreeing.reason).toBe("type-disagreement");
+    expect(disagreeing.mappedStart).toBeNull();
+    expect(disagreeing.skippedRegisters).toEqual([]);
     expect(disagreeing.message).toContain("run the full approximate suite.");
   });
 
