@@ -1,0 +1,163 @@
+:root {
+  color: #192326;
+  background: #f4f6f5;
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --canvas: #f4f6f5;
+  --paper: #ffffff;
+  --soft: #edf1f0;
+  --ink: #192326;
+  --muted: #43514f;
+  --line: #7d8a89;
+  --strong-line: #5f6c6b;
+  --accent: #315d68;
+  --accent-soft: #dcebed;
+  --move: #286c4e;
+  --move-soft: #dcefe5;
+  --skip: #6a5551;
+  --skip-soft: #eee3e0;
+  --refusal: #8b3e32;
+  --refusal-soft: #f3dfdb;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --page-width: 1280px;
+}
+
+* { box-sizing: border-box; }
+
+html { min-width: 320px; background: var(--canvas); }
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background: var(--canvas);
+  font-size: 1.1875rem;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+
+button, select { font: inherit; }
+
+button:focus-visible, select:focus-visible {
+  outline: 3px solid #172f36;
+  outline-offset: 3px;
+}
+
+.page-width { width: min(var(--page-width), calc(100% - 64px)); margin: 0 auto; }
+
+.site-header { background: var(--paper); border-bottom: 1px solid var(--strong-line); }
+
+.header-inner { min-height: 112px; padding: var(--space-6) 0; display: flex; align-items: center; justify-content: space-between; gap: var(--space-6); }
+
+.eyebrow { margin: 0 0 var(--space-1); color: var(--muted); font-size: 0.9375rem; font-weight: 600; letter-spacing: .04em; line-height: 1.3; text-transform: uppercase; }
+
+h1, h2, h3, p { margin-top: 0; }
+h1 { max-width: 800px; margin-bottom: 0; font-size: clamp(1.7rem, 4vw, 2.45rem); line-height: 1.3; }
+h2 { margin-bottom: var(--space-3); font-size: clamp(1.35rem, 3vw, 1.7rem); line-height: 1.3; }
+h3 { margin-bottom: var(--space-1); font-size: 1.15rem; line-height: 1.3; }
+
+.header-badge, .population, .status { display: inline-block; padding: 8px 12px; border: 1px solid var(--strong-line); color: var(--muted); font-size: 0.9375rem; font-weight: 600; letter-spacing: .04em; line-height: 1.3; text-transform: uppercase; white-space: nowrap; }
+
+.notice { padding: 12px 0; background: var(--accent-soft); border-bottom: 1px solid var(--line); color: #173d46; }
+
+.page-main { padding: var(--space-10) 0 64px; }
+
+.intro { max-width: 850px; margin-bottom: var(--space-8); }
+.intro p:last-child { margin-bottom: 0; }
+
+.control-panel, .panel, .unknown-card { margin-bottom: var(--space-8); padding: var(--space-6); background: var(--paper); border: 1px solid var(--line); }
+
+.section-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-5); }
+.section-heading h2 { margin-bottom: 0; }
+
+.controls-grid { display: grid; grid-template-columns: minmax(260px, 2fr) minmax(220px, 1fr) minmax(240px, 1.4fr); align-items: end; gap: var(--space-4); }
+.control-field { display: grid; gap: var(--space-1); color: var(--muted); font-size: 0.9375rem; font-weight: 400; line-height: 1.3; }
+select { width: 100%; min-height: 48px; padding: 8px 12px; background: var(--paper); border: 1px solid var(--strong-line); color: var(--ink); }
+.action-button { min-height: 48px; padding: 8px 16px; background: var(--accent); border: 1px solid #173d46; color: #fff; font-weight: 600; text-align: center; }
+.action-button:hover { background: #244a54; }
+.small-note { margin: var(--space-4) 0 0; color: var(--muted); font-size: 1rem; line-height: 1.5; }
+
+.status-accepted { background: var(--move-soft); border-color: var(--move); color: var(--move); }
+.status-refused { background: var(--refusal-soft); border-color: var(--refusal); color: var(--refusal); }
+.decision-copy, .refusal-copy { margin-bottom: var(--space-5); padding: var(--space-4); background: var(--soft); border-left: 4px solid var(--accent); }
+.refusal-copy { background: var(--refusal-soft); border-left-color: var(--refusal); color: #5e241d; }
+
+.facts { display: grid; grid-template-columns: repeat(6, minmax(100px, 1fr)); gap: 1px; margin: 0 0 var(--space-6); background: var(--line); border: 1px solid var(--line); }
+.fact { min-width: 0; padding: var(--space-3); background: var(--paper); }
+.fact dt { color: var(--muted); font-size: 0.9375rem; font-weight: 400; line-height: 1.3; }
+.fact dd { margin: 4px 0 0; overflow-wrap: anywhere; }
+.facts-four { grid-template-columns: repeat(6, minmax(120px, 1fr)); }
+.facts-four .fact:first-child { grid-column: span 2; }
+
+table { width: 100%; border-collapse: collapse; }
+caption { margin-bottom: var(--space-2); color: var(--muted); font-size: 1rem; font-weight: 600; text-align: left; }
+th, td { padding: 12px 8px; border: 1px solid var(--line); line-height: 1.4; text-align: center; vertical-align: middle; }
+th { background: var(--soft); font-weight: 600; }
+thead th { font-size: 0.9375rem; }
+tbody th { text-align: left; white-space: nowrap; }
+
+.mask-table { margin-bottom: var(--space-6); table-layout: fixed; }
+.mask-table th:first-child { width: 150px; }
+.mask-cell { padding: 8px 4px; font-size: 0.9375rem; font-weight: 600; }
+.mask-cell.move { background: var(--move-soft); color: var(--move); }
+.mask-cell.skip { background: var(--skip-soft); color: var(--skip); }
+.mask-cell.unavailable { background: var(--soft); color: var(--muted); }
+
+.recipe-table { table-layout: fixed; }
+.recipe-table th:first-child { width: 150px; }
+.recipe-table thead th:not(:first-child), .recipe-table td:not(:first-child) { font-size: 1rem; }
+.recipe-table .row-note { color: var(--muted); font-size: 0.9375rem; text-align: left; }
+.recipe-table .unavailable { color: var(--refusal); font-weight: 600; text-align: left; }
+
+.metric-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); }
+.metric-card { padding: var(--space-5); background: var(--soft); border: 1px solid var(--line); }
+.metric-unit { margin-bottom: var(--space-5); color: var(--muted); font-size: 1rem; }
+.score-row { margin-top: var(--space-4); }
+.score-label { display: flex; justify-content: space-between; gap: var(--space-3); font-size: 1rem; }
+.score-label strong { font-weight: 600; }
+.bar-track { height: 20px; margin-top: var(--space-1); background: #d1dcda; }
+.bar-fill { display: block; height: 100%; min-width: 2px; background: var(--accent); }
+
+.summary-table { max-width: 780px; }
+.unknown-card { background: #fffaf9; border-color: var(--refusal); }
+.unknown-card .facts { background: var(--refusal); }
+.limits { max-width: 900px; padding: var(--space-6) 0 0; border-top: 1px solid var(--strong-line); }
+.limits p:last-child { margin-bottom: 0; }
+
+.site-footer { padding: var(--space-6) 0; background: var(--ink); color: #fff; font-size: 1rem; }
+.site-footer .page-width { display: flex; justify-content: space-between; gap: var(--space-4); }
+
+@media (max-width: 900px) {
+  .page-width { width: min(var(--page-width), calc(100% - 40px)); }
+  .control-panel, .panel, .unknown-card { overflow-x: auto; }
+  .controls-grid { grid-template-columns: 1fr 1fr; }
+  .controls-grid .control-field:first-child { grid-column: span 2; }
+  .facts-four { grid-template-columns: repeat(3, 1fr); }
+  .facts-four .fact:first-child { grid-column: span 3; }
+  .mask-table, .recipe-table { display: block; min-width: 930px; overflow-x: auto; white-space: nowrap; }
+  .mask-table caption, .recipe-table caption { white-space: normal; }
+  .mask-table table, .recipe-table table { min-width: 930px; }
+}
+
+@media (max-width: 620px) {
+  body { font-size: 1.125rem; }
+  .page-width { width: min(var(--page-width), calc(100% - 28px)); }
+  .header-inner, .section-heading, .site-footer .page-width { display: block; }
+  .header-badge, .population, .status { margin-top: var(--space-4); white-space: normal; }
+  .page-main { padding-top: var(--space-8); }
+  .control-panel, .panel, .unknown-card { padding: var(--space-4); }
+  .controls-grid, .facts-four, .metric-grid { grid-template-columns: 1fr; }
+  .controls-grid .control-field:first-child, .facts-four .fact:first-child { grid-column: auto; }
+  .action-button { width: 100%; }
+  .facts { grid-template-columns: 1fr 1fr; }
+  .fact { overflow-wrap: anywhere; }
+  .site-footer .page-width span { display: block; margin-top: var(--space-2); }
+}
