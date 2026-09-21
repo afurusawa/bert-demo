@@ -44,7 +44,7 @@ The supplied app already includes its model, tests, styles, and build configurat
 
 ## Browser smoke check
 
-With `npm run dev` running, open the local Vite URL in a desktop browser. Confirm that a held-out row selection changes the tag, measurements, mask, and recipe table; the random-head button selects another rendered row; changing the claimed type keeps the measurements fixed and shows a refusal when the first read disagrees; both metric groups and the separate unknown-family panel are visible; and the controls can be reached with Tab and used at a narrow viewport. This is a short interaction check for the inspection flow, not a large browser test suite.
+With `npm run dev` running, open the local Vite URL in a desktop browser. Confirm that a held-out row selection changes the tag and measurements, shows twelve aligned learned and hidden mask cells, and keeps the threshold paragraph, four recipe rows, and unchecked proposal label visible. Confirm that the page shows correct-cell, missed-moving, and false-positive counts for every known type, both metric groups, and the separate unknown-family panel. The random-head button selects another rendered row. Changing the claimed type keeps the measurements fixed and shows a refusal when the first read disagrees. Use Tab to reach the controls, then repeat the check at a narrow viewport. This is a short interaction check for the inspection flow, not a large browser test suite.
 
 ## Synthetic world
 
@@ -59,8 +59,9 @@ The public model boundary is `createDemoModel(seed)` in `src/model.ts`. It expos
 ## Fitting and comparisons
 
 - The shared base is each register's pooled median across training final recipes.
-- A type marks a register as moving when its training mean absolute deviation from that pooled base exceeds the displayed mask threshold. The threshold is derived from training scores only and is expressed in register counts.
+- A type marks a register as moving when its training mean absolute deviation from that pooled base exceeds the displayed mask threshold. The threshold is the median of all type and register deviation scores plus three mean absolute deviations around that median. The calculation uses training scores only and is expressed in register counts.
 - A moving register uses a small linear fit from the four first-read measurements. A constant or singular feature case falls back to that type's training mean. A skipped register uses the shared base, not the last head's value.
+- An accepted claim only makes an unchecked proposal available for inspection. It does not say that the map is trustworthy or that the viewer should skip the full suite.
 - **Copy last** is the final recipe from the last completed training row. It is one fixed recipe for the entire held-out batch, representing a mixed workload.
 - **Same-type mean** is the per-register mean of completed training recipes for the claimed type. It is unavailable for `unknown_family`; the UI does not invent a family mean.
 - **Mapped with fallback** uses the learned start when the first-read checks accept the claim. A refused known head uses copy last for the aggregate starting score, and remains counted in the same population.

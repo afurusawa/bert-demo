@@ -121,13 +121,13 @@ function recipeRow(label: string, recipe: Recipe | null, note = ""): string {
 
 function recipeMarkup(inspection: HeadInspection): string {
   const proposal = inspection.proposal;
-  const mappedNote = proposal.status === "refused" ? "Refused; mapped-with-fallback scoring uses copy last." : "Learned moving registers; skipped registers use the pooled base.";
+  const mappedNote = proposal.status === "refused" ? "Refused; mapped-with-fallback scoring uses copy last." : "Unchecked proposal. Learned moving registers; skipped registers use the pooled base.";
   return `
     <table class="recipe-table">
       <caption>Starting recipes and hidden completed recipe</caption>
       <thead><tr><th scope="col">recipe</th>${REGISTER_NAMES.map((name) => `<th scope="col">${name}</th>`).join("")}<th scope="col">meaning</th></tr></thead>
       <tbody>
-        ${recipeRow("mapped start", proposal.mappedStart, mappedNote)}
+        ${recipeRow("mapped start (unchecked)", proposal.mappedStart, mappedNote)}
         ${recipeRow("copy last", proposal.copyLast, "One fixed last training recipe for the whole held-out batch.")}
         ${recipeRow("same-type mean", proposal.sameTypeMean, "Training rows only; no invented family mean.")}
         ${recipeRow("hidden true", inspection.row.hiddenTrueRecipe, "Evaluation evidence, never a fitting input.")}
@@ -204,8 +204,8 @@ function unknownMarkup(): string {
 
 function selectedMarkup(inspection: HeadInspection): string {
   const proposal = inspection.proposal;
-  const statusClass = proposal.status === "accepted" ? "status-accepted" : "status-refused";
-  const statusText = proposal.status === "accepted" ? "MAP ACCEPTED" : "MAP REFUSED";
+  const statusClass = proposal.status === "accepted" ? "status-proposed" : "status-refused";
+  const statusText = proposal.status === "accepted" ? "MAP PROPOSAL · UNCHECKED" : "MAP REFUSED";
   const selectedMetrics = inspection.row.changeType !== "unknown_family" ? model.evaluation.knownHeads.find((head) => head.row.id === inspection.row.id) : null;
   const finalBer = inspection.row.finalBer;
 
@@ -250,7 +250,7 @@ function render(): void {
       <section class="intro">
         <p class="eyebrow">One-page inspection flow</p>
         <h2>Choose a held-out head, then compare the proposed start with two baselines.</h2>
-        <p>Training fits the shared base, register mask, and small first-read predictors. The test row remains unseen during fitting; its hidden mask and recipe are shown only so the viewer can inspect the proposal.</p>
+        <p>Training fits the shared base, register mask, and small first-read predictors. The test row remains unseen during fitting; its hidden mask and recipe are shown only so the viewer can inspect the unchecked proposal.</p>
       </section>
 
       <section class="control-panel" aria-labelledby="controls-heading">
@@ -279,7 +279,7 @@ function render(): void {
 
       <section class="panel" aria-labelledby="mask-summary-heading">
         <div class="section-heading"><div><h2 id="mask-summary-heading">How the five learned masks compare</h2></div></div>
-        <p>The mask threshold is <strong>${model.fitted.maskThreshold.toFixed(2)} register counts</strong>: a type’s mean absolute deviation from the pooled training median must exceed this training-derived threshold to be marked moving.</p>
+        <p>The mask threshold is <strong>${model.fitted.maskThreshold.toFixed(2)} register counts</strong>. Mark a register as moving when its type-level mean absolute deviation from the pooled training median exceeds this training-only threshold. The threshold is the median of all type and register deviation scores plus three mean absolute deviations around that median.</p>
         ${maskMetricsMarkup()}
       </section>
 

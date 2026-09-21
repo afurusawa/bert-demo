@@ -390,7 +390,7 @@ function median(values: readonly number[]): number {
 }
 
 function meanAbsoluteDeviation(values: readonly number[], center: number): number {
-  return median(values.map((value) => Math.abs(value - center)));
+  return mean(values.map((value) => Math.abs(value - center)));
 }
 
 function featureVector(firstRead: FirstRead, featureMeans: FirstRead, featureScales: FirstRead): number[] {
@@ -624,8 +624,8 @@ export function proposeRecipe(fitted: FittedModel, input: ProposalInput): Propos
     reason: "accepted",
     message:
       skippedRegisters.length > 0
-        ? `Accepted: skipped ${skippedRegisters.join(", ")} use the shared base recipe.`
-        : "Accepted: every register has a learned adjustment.",
+        ? `Unchecked proposal: skipped ${skippedRegisters.join(", ")} use the shared base recipe.`
+        : "Unchecked proposal: every register has a learned adjustment.",
     mappedStart,
     startForScoring: [...mappedStart],
     copyLast: [...fitted.copyLast],
