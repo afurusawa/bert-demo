@@ -769,7 +769,8 @@ h2 {
   font-weight: var(--weight-regular);
 }
 
-.run-detail-page .detail-title-line h1 span {
+.run-detail-page .detail-title-line h1 span,
+.comparison-page .detail-title-line h1 span {
   color: var(--ink-secondary);
 }
 
@@ -967,6 +968,12 @@ h2 {
   min-height: var(--space-64);
 }
 
+.comparison-page .comparison-panel-heading {
+  min-height: var(--space-64);
+  padding: var(--space-16) var(--space-20);
+  border-bottom: var(--hairline) solid var(--edge-border);
+}
+
 .comparison-content {
   padding: var(--space-16);
   background: var(--surface-soft);
@@ -995,6 +1002,10 @@ h2 {
 }
 
 .comparison-plot-panel-heading .eyebrow {
+  margin-bottom: var(--space-4);
+}
+
+.comparison-plot-panel-heading .section-kicker {
   margin-bottom: var(--space-4);
 }
 
@@ -1286,6 +1297,10 @@ h2 {
   margin-bottom: var(--space-4);
 }
 
+.comparison-legend .plot-sidebar-heading .section-kicker {
+  margin-bottom: var(--space-4);
+}
+
 .comparison-legend-grid {
   display: grid;
   gap: var(--space-16);
@@ -1361,11 +1376,10 @@ h2 {
   border-left: var(--hairline) solid var(--edge-border);
 }
 
-.comparison-page .comparison-source-strip .dataset-key {
+.comparison-page .comparison-source-strip .field-label {
   grid-column: 1 / -1;
   color: var(--ink-secondary);
   font-weight: var(--weight-regular);
-  letter-spacing: var(--tracking-section-kicker);
 }
 
 .comparison-source-strip strong {
@@ -1486,12 +1500,15 @@ h2 {
 }
 
 .run-detail-page .plot-tick-label,
-.run-detail-page .plot-axis-title {
+.comparison-page .plot-tick-label,
+.run-detail-page .plot-axis-title,
+.comparison-page .plot-axis-title {
   fill: var(--ink-secondary);
   font-size: var(--plot-text-tick-label);
 }
 
-.run-detail-page .plot-axis-title {
+.run-detail-page .plot-axis-title,
+.comparison-page .plot-axis-title {
   fill: var(--ink-primary);
   font-size: var(--plot-text-axis-title);
   font-weight: var(--weight-medium);
@@ -1542,17 +1559,20 @@ h2 {
   font-size: 8px;
 }
 
-.run-detail-page .contour-label rect {
+.run-detail-page .contour-label rect,
+.comparison-page .contour-label rect {
   fill: var(--surface-accent);
 }
 
-.run-detail-page .contour-label text {
+.run-detail-page .contour-label text,
+.comparison-page .contour-label text {
   fill: var(--ink-on-accent);
   font-size: var(--plot-text-annotation);
   letter-spacing: var(--tracking-section-kicker);
 }
 
-.run-detail-page .contour-label text + text {
+.run-detail-page .contour-label text + text,
+.comparison-page .contour-label text + text {
   fill: var(--ink-on-accent);
   font-size: var(--plot-text-annotation-secondary);
 }

@@ -15,6 +15,7 @@ export const CONTOUR_ANNOTATION = {
   paddingX: 12,
   firstBaseline: PLOT_TEXT.annotation + 4,
   secondBaseline: PLOT_TEXT.annotation + PLOT_TEXT.annotationSecondary + 4,
+  leftOffset: 12,
   rightOffset: 12,
   topOffset: 12,
 } as const;
