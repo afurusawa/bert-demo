@@ -170,6 +170,7 @@ export interface EvaluationSummary {
   readonly aggregates: Readonly<Record<StrategyName, AggregateMetric>>;
   readonly maskMetrics: Readonly<Record<KnownType, MaskMetrics>>;
   readonly unknownExample: HeadInspection;
+  readonly unknownFamilyChecks: readonly HeadInspection[];
 }
 
 const FIRST_READ_KEYS = ["amp", "snr", "timing_error", "asy"] as const;
@@ -624,7 +625,7 @@ export function proposeRecipe(fitted: FittedModel, input: ProposalInput): Propos
     reason: "accepted",
     message:
       skippedRegisters.length > 0
-        ? `Unchecked proposal: skipped ${skippedRegisters.join(", ")} use the shared base recipe.`
+        ? `Unchecked proposal: skipped ${skippedRegisters.join(", ")} use the estimated shared base recipe.`
         : "Unchecked proposal: every register has a learned adjustment.",
     mappedStart,
     startForScoring: [...mappedStart],
@@ -705,14 +706,14 @@ function evaluateCorpus(fitted: FittedModel, corpus: DemoCorpus): EvaluationSumm
     throw new Error("unknown-family example is missing");
   }
 
-  const unknownExample: HeadInspection = {
+  const unknownFamilyChecks = [unknownRow.changeType, ...KNOWN_TYPES].map((claimedType): HeadInspection => ({
     row: unknownRow,
-    claimedType: unknownRow.changeType,
+    claimedType,
     proposal: proposeRecipe(fitted, {
-      claimedType: unknownRow.changeType,
+      claimedType,
       firstRead: unknownRow.firstRead,
     }),
-  };
+  }));
 
   return {
     knownHeads,
@@ -724,7 +725,8 @@ function evaluateCorpus(fitted: FittedModel, corpus: DemoCorpus): EvaluationSumm
       mappedWithFallback: aggregate("mappedWithFallback"),
     },
     maskMetrics,
-    unknownExample,
+    unknownExample: unknownFamilyChecks[0],
+    unknownFamilyChecks,
   };
 }
 

@@ -126,6 +126,7 @@ describe("synthetic head recipe model", () => {
 
     expect(accepted.status).toBe("accepted");
     expect(accepted.message.toLowerCase()).toContain("unchecked");
+    expect(accepted.message).toContain("estimated shared base");
     expect(accepted.mappedStart).not.toBeNull();
     expect(accepted.mappedStart).toHaveLength(REGISTER_NAMES.length);
     expect(accepted.mappedStart!.every((value) => Number.isInteger(value) && value >= 0 && value <= 255)).toBe(true);
@@ -152,7 +153,29 @@ describe("synthetic head recipe model", () => {
     });
     expect(disagreeing.status).toBe("refused");
     expect(disagreeing.reason).toBe("type-disagreement");
+    expect(disagreeing.mappedStart).toBeNull();
+    expect(disagreeing.skippedRegisters).toEqual([]);
     expect(disagreeing.message).toContain("run the full approximate suite.");
+  });
+
+  it("refuses a claimed type whose first read is unusually far from its fitted population", () => {
+    const model = createDemoModel(0);
+    const proposal = model.propose(model.fitted, {
+      claimedType: "laser_up",
+      firstRead: {
+        amp: 1.1094876511577338,
+        snr: 24.018011068237282,
+        timing_error: -0.2583024854595165,
+        asy: -0.0751431549913211,
+      },
+    });
+
+    expect(proposal.status).toBe("refused");
+    expect(proposal.reason).toBe("unusual-first-read");
+    expect(proposal.nearestType).toBe("laser_up");
+    expect(proposal.firstReadDistance).toBeGreaterThan(model.fitted.types.laser_up.distanceThreshold);
+    expect(proposal.message).toContain("unusually far");
+    expect(proposal.message).toContain("run the full approximate suite.");
   });
 
   it("evaluates the same 79 known heads with arithmetic means and fallback accounting", () => {
@@ -232,6 +255,25 @@ describe("synthetic head recipe model", () => {
     );
     expect(JSON.stringify(model.fitted)).toBe(fittedBefore);
     expect(alteredTestRows[0].hiddenTrueRecipe).not.toEqual(model.corpus.testRows[0].hiddenTrueRecipe);
+  });
+
+  it("refuses the unknown family under its unsupported label and every known claim", () => {
+    const model = createDemoModel(0);
+    const unknownRow = model.corpus.testRows.find((row) => row.changeType === "unknown_family")!;
+    const alteredUnknownRows = model.corpus.testRows.map((row) =>
+      row.id === unknownRow.id ? { ...row, hiddenMask: row.hiddenMask.map(() => false) } : row,
+    );
+    const checks = model.evaluate(model.fitted, alteredUnknownRows).unknownFamilyChecks;
+
+    expect(checks).toHaveLength(KNOWN_TYPES.length + 1);
+    expect(checks[0].claimedType).toBe("unknown_family");
+    expect(checks[0].proposal.reason).toBe("unsupported-label");
+    expect(checks.slice(1).map((check) => check.claimedType)).toEqual([...KNOWN_TYPES]);
+    expect(checks.slice(1).every((check) => check.proposal.status === "refused")).toBe(true);
+    expect(checks.slice(1).every((check) => check.proposal.reason !== "accepted")).toBe(true);
+    expect(checks.slice(1).map((check) => check.proposal.reason)).toContain("type-disagreement");
+    expect(checks.slice(1).map((check) => check.proposal.reason)).toContain("unusual-first-read");
+    expect(checks.every((check) => check.proposal.message.includes("run the full approximate suite."))).toBe(true);
   });
 
   it("falls back to a finite type mean when all training features are constant", () => {
