@@ -753,13 +753,10 @@ h2 {
   align-items: flex-start;
 }
 
-.comparison-page .detail-title-line {
-  gap: var(--space-16);
-}
-
 .detail-title-line {
   display: flex;
   align-items: center;
+  gap: var(--space-16);
 }
 
 .detail-title-line h1 span {
@@ -965,7 +962,7 @@ h2 {
 
 .comparison-plot-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-16);
 }
 
