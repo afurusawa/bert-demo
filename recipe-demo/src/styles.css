@@ -85,7 +85,7 @@ select { width: 100%; min-height: 48px; padding: 8px 12px; background: var(--pap
 .action-button:hover { background: #244a54; }
 .small-note { margin: var(--space-4) 0 0; color: var(--muted); font-size: 1rem; line-height: 1.5; }
 
-.status-accepted { background: var(--move-soft); border-color: var(--move); color: var(--move); }
+.status-proposed { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
 .status-refused { background: var(--refusal-soft); border-color: var(--refusal); color: var(--refusal); }
 .decision-copy, .refusal-copy { margin-bottom: var(--space-5); padding: var(--space-4); background: var(--soft); border-left: 4px solid var(--accent); }
 .refusal-copy { background: var(--refusal-soft); border-left-color: var(--refusal); color: #5e241d; }

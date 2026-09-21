@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { createDemoModel, KNOWN_TYPES, REGISTER_NAMES, syntheticBer } from "./model";
 
+function medianForTest(values: readonly number[]): number {
+  const sorted = [...values].sort((first, second) => first - second);
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0 ? (sorted[middle - 1] + sorted[middle]) / 2 : sorted[middle];
+}
+
 describe("synthetic head recipe model", () => {
   it("reproduces the seed-0 corpus with stable split identities", () => {
     const first = createDemoModel(0);
@@ -91,6 +97,25 @@ describe("synthetic head recipe model", () => {
     expect(model.fitted.baseRecipe.every((value) => Number.isInteger(value) && value >= 0 && value <= 255)).toBe(true);
   });
 
+  it("uses the training mean absolute deviation rule for the mask threshold", () => {
+    const model = createDemoModel(0);
+    const baseRecipe = REGISTER_NAMES.map((_, register) =>
+      Math.round(medianForTest(model.corpus.trainingRows.map((row) => row.finalRecipe[register]))),
+    );
+    const deviationScores = KNOWN_TYPES.flatMap((type) => {
+      const rows = model.corpus.trainingRows.filter((row) => row.changeType === type);
+      return REGISTER_NAMES.map((_, register) =>
+        rows.reduce((sum, row) => sum + Math.abs(row.finalRecipe[register] - baseRecipe[register]), 0) / rows.length,
+      );
+    });
+    const center = medianForTest(deviationScores);
+    const meanAbsoluteDeviation =
+      deviationScores.reduce((sum, score) => sum + Math.abs(score - center), 0) / deviationScores.length;
+    const expectedThreshold = Math.max(5, center + 3 * meanAbsoluteDeviation);
+
+    expect(model.fitted.maskThreshold).toBeCloseTo(expectedThreshold, 12);
+  });
+
   it("keeps the two baselines separate and refuses unsupported or disagreeing claims", () => {
     const model = createDemoModel(0);
     const row = model.corpus.testRows.find((candidate) => candidate.changeType === "laser_up")!;
@@ -100,6 +125,7 @@ describe("synthetic head recipe model", () => {
     });
 
     expect(accepted.status).toBe("accepted");
+    expect(accepted.message.toLowerCase()).toContain("unchecked");
     expect(accepted.mappedStart).not.toBeNull();
     expect(accepted.mappedStart).toHaveLength(REGISTER_NAMES.length);
     expect(accepted.mappedStart!.every((value) => Number.isInteger(value) && value >= 0 && value <= 255)).toBe(true);
@@ -174,6 +200,11 @@ describe("synthetic head recipe model", () => {
     const fittedBefore = JSON.stringify(model.fitted);
     const evaluationBefore = JSON.stringify(model.evaluation);
     const corpusBefore = JSON.stringify(model.corpus);
+    const unchangedInput = {
+      claimedType: "laser_up" as const,
+      firstRead: model.corpus.testRows[0].firstRead,
+    };
+    const proposalBefore = model.propose(model.fitted, unchangedInput);
 
     const randomHead = model.randomTestHead();
     expect(model.corpus.testRows.some((row) => row.id === randomHead.id)).toBe(true);
@@ -184,10 +215,17 @@ describe("synthetic head recipe model", () => {
 
     const alteredTestRows = model.corpus.testRows.map((row, index) =>
       index === 0
-        ? { ...row, hiddenTrueRecipe: row.hiddenTrueRecipe.map((value) => value + 40) }
+        ? {
+            ...row,
+            finalRecipe: row.finalRecipe.map((value) => value + 40),
+            finalBer: 0.000999,
+            hiddenTrueRecipe: row.hiddenTrueRecipe.map((value) => value + 20),
+          }
         : row,
     );
-    expect(JSON.stringify(model.fit(model.corpus.trainingRows))).toBe(fittedBefore);
+    const fittedAfterEvaluatorChanges = model.fit(model.corpus.trainingRows);
+    expect(JSON.stringify(fittedAfterEvaluatorChanges)).toBe(fittedBefore);
+    expect(model.propose(fittedAfterEvaluatorChanges, unchangedInput)).toEqual(proposalBefore);
     const alteredEvaluation = model.evaluate(model.fitted, alteredTestRows);
     expect(alteredEvaluation.knownHeads[0].final.l2Distance).not.toBe(
       model.evaluation.knownHeads[0].final.l2Distance,
