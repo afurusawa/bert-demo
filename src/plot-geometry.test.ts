@@ -18,6 +18,8 @@ describe("plot geometry", () => {
     });
     expect(CONTOUR_ANNOTATION.width).toBe(240);
     expect(CONTOUR_ANNOTATION.height).toBe(40);
+    expect(CONTOUR_ANNOTATION.leftOffset).toBe(12);
+    expect(CONTOUR_ANNOTATION.rightOffset).toBe(12);
   });
 
   it("does not claim browser navigation keys", () => {

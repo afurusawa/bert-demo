@@ -468,7 +468,7 @@ function ComparisonMetricCard({
 }) {
   return (
     <article className="metric-card comparison-metric-card">
-      <div className="metric-card-top"><span className="eyebrow">{label}</span><span className="metric-mark">Δ</span></div>
+      <div className="metric-card-top"><span className="field-label">{label}</span><span className="metric-mark">Δ</span></div>
       <div className="large-metric">{delta} <span>{unit}</span></div>
       {deltaSecondary ? <div className="comparison-delta-secondary">{deltaSecondary}</div> : null}
       <div className="metric-secondary">{baseline} <span className="comparison-arrow">→</span> {later}</div>
@@ -494,7 +494,7 @@ function ComparisonView({ baseline, later }: { baseline: ScanRun; later: ScanRun
           </p>
         </div>
         <div className="run-id-block comparison-pair-block">
-          <span className="dataset-key">PAIR</span>
+          <span className="field-label">PAIR</span>
           <span className="run-id mono-value">L3 / L3</span>
         </div>
       </section>
@@ -518,7 +518,7 @@ function ComparisonView({ baseline, later }: { baseline: ScanRun; later: ScanRun
           qualifier="Later unit minus baseline · BER 1e-6 · 95% confidence"
         />
         <article className="metric-card metric-card-neutral comparison-metric-card">
-          <div className="metric-card-top"><span className="eyebrow">COMPARISON BASIS</span><span className="metric-mark">≋</span></div>
+          <div className="metric-card-top"><span className="field-label">COMPARISON BASIS</span><span className="metric-mark">≋</span></div>
           <div className="large-metric">1e-6 <span>BER</span></div>
           <div className="metric-secondary">one-sided 95% contours</div>
           <div className="metric-qualifier">Exact point estimates and confidence-bounded cells stay distinct.</div>
@@ -537,12 +537,12 @@ function ComparisonView({ baseline, later }: { baseline: ScanRun; later: ScanRun
 
       <section className="comparison-source-strip" aria-label="Compared scan records">
         <div>
-          <span className="dataset-key">BASELINE RECORD</span>
+          <span className="field-label">BASELINE RECORD</span>
           <strong>2026-06-12 · DUT-4471 · Lane 3</strong>
           <a href={`/runs/${encodeURIComponent(baseline.id)}`}>Open run record →</a>
         </div>
         <div>
-          <span className="dataset-key">LATER UNIT RECORD</span>
+          <span className="field-label">LATER UNIT RECORD</span>
           <strong>2026-07-08 · DUT-5120 · Lane 3</strong>
           <a href={`/runs/${encodeURIComponent(later.id)}`}>Open run record →</a>
         </div>

@@ -104,9 +104,11 @@ describe("design tokens", () => {
     expect(TARGET_SIZES.inContextControl).toBeGreaterThanOrEqual(24);
   });
 
-  it("keeps plot text legible once the viewBox has been scaled down", () => {
-    for (const unit of Object.values(PLOT_TEXT_UNITS)) {
-      expect(unit * PLOT_MINIMUM_VIEWBOX_SCALE).toBeGreaterThanOrEqual(MINIMUM_SIZE_PX);
+  it("keeps every plot text drawing unit above the 15px floor at minimum viewBox scale", () => {
+    for (const [name, unit] of Object.entries(PLOT_TEXT_UNITS)) {
+      const renderedSize = unit * PLOT_MINIMUM_VIEWBOX_SCALE;
+
+      expect(renderedSize, `${name} rendered size`).toBeGreaterThanOrEqual(MINIMUM_SIZE_PX);
     }
   });
 

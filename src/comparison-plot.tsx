@@ -11,6 +11,7 @@ import {
   buildContourPath,
   cellIndexFromPointer,
   cellBounds,
+  CONTOUR_ANNOTATION,
   moveSelection,
   PLOT,
   samplePoint,
@@ -174,6 +175,26 @@ function drawCanvas(
   }
 }
 
+function ComparisonPlotAnnotation({
+  className,
+  transform,
+  firstLine,
+  secondLine,
+}: {
+  className: string;
+  transform: string;
+  firstLine: string;
+  secondLine: string;
+}) {
+  return (
+    <g className={`contour-label ${className}`} transform={transform}>
+      <rect width={CONTOUR_ANNOTATION.width} height={CONTOUR_ANNOTATION.height} rx="3" />
+      <text x={CONTOUR_ANNOTATION.paddingX} y={CONTOUR_ANNOTATION.firstBaseline}>{firstLine}</text>
+      <text x={CONTOUR_ANNOTATION.paddingX} y={CONTOUR_ANNOTATION.secondBaseline}>{secondLine}</text>
+    </g>
+  );
+}
+
 function PlotAxes({
   baseline,
   mode,
@@ -279,23 +300,30 @@ function PlotAxes({
           {plotData.baselineContourPath && <path className="comparison-contour-baseline" d={plotData.baselineContourPath} />}
           {plotData.laterContourPath && <path className="comparison-contour-later-halo" d={plotData.laterContourPath} />}
           {plotData.laterContourPath && <path className="comparison-contour-later" d={plotData.laterContourPath} />}
-          <g className="contour-label comparison-contour-label" transform={`translate(${PLOT.left + PLOT.width - 188} ${PLOT.top + 12})`}>
+          <g className="contour-label comparison-contour-label" transform={`translate(${PLOT.left + CONTOUR_ANNOTATION.leftOffset} ${PLOT.top + CONTOUR_ANNOTATION.topOffset})`}>
             <rect width="178" height="43" rx="3" />
             <line x1="10" y1="13" x2="24" y2="13" className="comparison-label-line baseline-line" />
-            <text x="31" y="16">Baseline lane 3</text>
+            <text x="31" y={CONTOUR_ANNOTATION.firstBaseline}>Baseline lane 3</text>
             <line x1="10" y1="30" x2="24" y2="30" className="comparison-label-line later-line" />
-            <text x="31" y="33">Later unit lane 3</text>
+            <text x="31" y={CONTOUR_ANNOTATION.secondBaseline}>Later unit lane 3</text>
           </g>
+          <ComparisonPlotAnnotation
+            className="comparison-contour-annotation"
+            transform={`translate(${PLOT.left + PLOT.width - CONTOUR_ANNOTATION.width - CONTOUR_ANNOTATION.rightOffset} ${PLOT.top + CONTOUR_ANNOTATION.topOffset})`}
+            firstLine="BER 1e-6"
+            secondLine="one-sided 95% upper bound"
+          />
         </>
       ) : (
         <>
           {plotData.belowResolutionPath && <path className="comparison-below-resolution-marking" d={plotData.belowResolutionPath} />}
           {plotData.boundedPath && <path className="comparison-bounded-marking" d={plotData.boundedPath} />}
-          <g className="contour-label comparison-difference-label" transform={`translate(${PLOT.left + PLOT.width - 190} ${PLOT.top + 12})`}>
-            <rect width="180" height="27" rx="3" />
-            <text x="10" y="12">log10(later / baseline)</text>
-            <text x="10" y="22">point estimates when measured</text>
-          </g>
+          <ComparisonPlotAnnotation
+            className="comparison-difference-label"
+            transform={`translate(${PLOT.left + PLOT.width - CONTOUR_ANNOTATION.width - CONTOUR_ANNOTATION.rightOffset} ${PLOT.top + CONTOUR_ANNOTATION.topOffset})`}
+            firstLine="log10(later / baseline)"
+            secondLine="point estimates when measured"
+          />
         </>
       )}
       <line
@@ -381,7 +409,7 @@ function ComparisonPlotPanel({
     <article className="comparison-plot-panel">
       <div className="comparison-plot-panel-heading">
         <div>
-          <p className="eyebrow">{mode === "contours" ? "SHARED AXES" : "DIFFERENCE MAP"}</p>
+          <p className="section-kicker">{mode === "contours" ? "SHARED AXES" : "DIFFERENCE MAP"}</p>
           <h3>{mode === "contours" ? "Target contours" : "Log-BER change"}</h3>
         </div>
         <span>{mode === "contours" ? "BER 1e-6 · 95%" : "decades"}</span>
@@ -409,7 +437,7 @@ function ComparisonPlotPanel({
 function ReadoutValue({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="comparison-readout-value">
-      <span>{label}</span>
+      <span className="field-label">{label}</span>
       <strong>{children}</strong>
     </div>
   );
@@ -473,7 +501,6 @@ function ComparisonReadout({
     <section className="comparison-readout" aria-labelledby="comparison-readout-title">
       <div className="comparison-readout-heading">
         <div>
-          <p className="eyebrow">CROSSHAIR READOUT</p>
           <h3 id="comparison-readout-title">Selected comparison cell</h3>
         </div>
         <span className="plot-cell-index">
@@ -482,12 +509,12 @@ function ComparisonReadout({
       </div>
       <div className="comparison-coordinate-grid">
         <div className="plot-coordinate">
-          <span>Phase</span>
+          <span className="field-label">Phase</span>
           <strong>{formatSigned(cell.phasePs)} <small>ps</small></strong>
           <em>{formatSigned(cell.phaseUi, 3)} UI</em>
         </div>
         <div className="plot-coordinate">
-          <span>Threshold</span>
+          <span className="field-label">Threshold</span>
           <strong>{formatSigned(cell.thresholdMv)} <small>mV</small></strong>
           <em>sample voltage</em>
         </div>
@@ -497,14 +524,14 @@ function ComparisonReadout({
       </div>
       <div className="comparison-readout-columns">
         <div>
-          <p className="comparison-run-label">Baseline lane 3 <span>{baseline.startedAt.slice(0, 10)}</span></p>
+          <p className="comparison-run-label field-label">Baseline lane 3 <span>{baseline.startedAt.slice(0, 10)}</span></p>
           <ReadoutValue label="Errors">{formatNumber(cell.baselineErrors, 0)}</ReadoutValue>
           <ReadoutValue label="Tested bits">{formatNumber(baseline.sweep.bitsTested, 0)}</ReadoutValue>
           <ReadoutValue label="Observed BER">{baselineObserved === null ? "No errors observed" : formatBer(baselineObserved)}</ReadoutValue>
           <ReadoutValue label="95% upper bound">{formatBer(cell.comparison.baseline.upperConfidenceBer)}</ReadoutValue>
         </div>
         <div>
-          <p className="comparison-run-label">Later unit lane 3 <span>{later.startedAt.slice(0, 10)}</span></p>
+          <p className="comparison-run-label field-label">Later unit lane 3 <span>{later.startedAt.slice(0, 10)}</span></p>
           <ReadoutValue label="Errors">{formatNumber(cell.laterErrors, 0)}</ReadoutValue>
           <ReadoutValue label="Tested bits">{formatNumber(later.sweep.bitsTested, 0)}</ReadoutValue>
           <ReadoutValue label="Observed BER">{laterObserved === null ? "No errors observed" : formatBer(laterObserved)}</ReadoutValue>
@@ -526,7 +553,7 @@ function ComparisonLegend() {
   return (
     <section className="comparison-legend" aria-labelledby="comparison-legend-title">
       <div className="plot-sidebar-heading">
-        <p className="eyebrow">READING THE COMPARISON</p>
+        <p className="section-kicker">READING THE COMPARISON</p>
         <h3 id="comparison-legend-title">Difference map key</h3>
       </div>
       <div className="comparison-legend-grid">

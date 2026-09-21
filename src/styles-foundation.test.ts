@@ -90,8 +90,8 @@ function declarations(source: string): Declaration[] {
 }
 
 /** The declarations of every rule whose selector list mentions `selector`. */
-function ruleDeclarations(selector: string): Declaration[] {
-  const rules = [...baseRules.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter((rule) =>
+function declarationsForRule(source: string, selector: string): Declaration[] {
+  const rules = [...source.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter((rule) =>
     rule[1].split(",").some((candidate) => candidate.trim() === selector),
   );
 
@@ -100,14 +100,26 @@ function ruleDeclarations(selector: string): Declaration[] {
   return rules.flatMap((rule) => declarations(rule[2]));
 }
 
-function valueOf(selector: string, property: string): string {
-  const declaration = ruleDeclarations(selector)
+function ruleDeclarations(selector: string): Declaration[] {
+  return declarationsForRule(baseRules, selector);
+}
+
+function valueFromSource(source: string, selector: string, property: string): string {
+  const declaration = declarationsForRule(source, selector)
     .filter((candidate) => candidate.property === property)
     .at(-1);
 
   expect(declaration, `${selector} sets no ${property}`).toBeDefined();
 
   return declaration!.value;
+}
+
+function stylesheetValueOf(selector: string, property: string): string {
+  return valueFromSource(stylesheet, selector, property);
+}
+
+function valueOf(selector: string, property: string): string {
+  return valueFromSource(baseRules, selector, property);
 }
 
 function tokenName(value: string, prefix: string): string {
@@ -226,5 +238,26 @@ describe("shared type foundation", () => {
     for (const breakpoint of Object.values(BREAKPOINTS)) {
       expect(foundation).toContain(`@media (max-width: ${breakpoint / ROOT_FONT_SIZE_PX}em)`);
     }
+  });
+
+  it("uses one set of plot text drawing units on run detail and comparison", () => {
+    const sharedPlotTextRules = [
+      [".plot-tick-label", "--plot-text-tick-label"],
+      [".plot-axis-title", "--plot-text-axis-title"],
+      [".contour-label text", "--plot-text-annotation"],
+      [".contour-label text + text", "--plot-text-annotation-secondary"],
+    ] as const;
+
+    for (const [plotSelector, token] of sharedPlotTextRules) {
+      for (const surface of [".run-detail-page", ".comparison-page"]) {
+        expect(stylesheetValueOf(`${surface} ${plotSelector}`, "font-size")).toBe(`var(${token})`);
+      }
+    }
+  });
+
+  it("keeps the comparison title separator on the 7:1 text ink", () => {
+    expect(stylesheetValueOf(".comparison-page .detail-title-line h1 span", "color")).toBe(
+      "var(--ink-secondary)",
+    );
   });
 });
