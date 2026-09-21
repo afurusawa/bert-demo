@@ -45,7 +45,7 @@ The supplied app already includes its model, tests, styles, and build configurat
 
 ## Browser smoke check
 
-With `npm run dev` running, open the local Vite URL in a desktop browser. Confirm that a held-out row selection changes the tag and measurements, initializes the claimed type from the actual type, and shows both types together. The page should show twelve aligned learned and hidden mask cells, the threshold paragraph, and four recipe rows. The random-head button selects another rendered row and resets the claimed type to that row's actual type. Change the claimed type and verify that the tag and four first-read measurements stay fixed, while a disagreement shows a refusal with the full-suite instruction and no learned move/skip instructions. After a refusal, the mapped row is unavailable and copy last is labeled as the fallback starting point; an unsupported claim has no invented same-type mean. Confirm that the separate unknown-family panel lists refusal checks for its unsupported label and every known label, with the reason text visible. Confirm correct-cell, missed-moving, and false-positive counts for every known type and both metric groups. Use Tab to reach the controls, then repeat the check at a narrow viewport. The one-test automated version of this short interaction check is `npm run test:smoke`; it uses the installed Edge channel and is not a large browser suite.
+With `npm run dev` running, open the local Vite URL in a desktop browser. Confirm that the acceptance summary says 53 of 79 known heads accepted (67.1%), and that the two separate metric groups show numerical L2 and BER labels with a common bar scale inside each group. Confirm the fixed mixed-workload copy-last baseline explanation. A held-out row selection changes the tag and measurements, initializes the claimed type from the actual type, and shows both types together. The page should show twelve aligned learned and hidden mask cells, the threshold paragraph, and four recipe rows. The random-head button selects another rendered row and resets the claimed type to that row's actual type. Change the claimed type and verify that the tag and four first-read measurements stay fixed, while a disagreement shows a refusal with the full-suite instruction and no learned move/skip instructions. After a refusal, the mapped row is unavailable and copy last is labeled as the fallback starting point; an unsupported claim has no invented same-type mean. Confirm that the separate unknown-family panel lists refusal checks for its unsupported label and every known label, with the reason text visible. Confirm correct-cell, missed-moving, and false-positive counts for every known type and both metric groups. Use Tab to reach the controls, then repeat the check at a narrow viewport and at 125% browser zoom; text must remain readable and the aggregate summary must not change. The one-test automated version of this short interaction check is `npm run test:smoke`; it uses the installed Edge channel and is not a large browser suite.
 
 ## Synthetic world
 
@@ -67,7 +67,7 @@ The public model boundary is `createDemoModel(seed)` in `src/model.ts`. It expos
 - **Same-type mean** is the per-register mean of completed training recipes for the claimed type. It is unavailable for `unknown_family`; the UI does not invent a family mean.
 - **Mapped with fallback** uses the learned start when the first-read checks accept the claim. A refused known head uses copy last for the aggregate starting score, and remains counted in the same population.
 
-The page reports Euclidean (L2) distance from each start to the hidden true recipe. One monotone synthetic BER function is used for both completed logs and starts:
+The page reports Euclidean (L2) distance from each start to the hidden true recipe. Each displayed L2 aggregate is the arithmetic mean of 79 per-head distances over the same known held-out rows. One monotone synthetic BER function is used for both completed logs and starts:
 
 ```text
 BER = 1e-6 + 0.000999 * (1 - exp(-L2 / 35))
@@ -76,6 +76,18 @@ BER = 1e-6 + 0.000999 * (1 - exp(-L2 / 35))
 All reported values are finite and remain between `1e-6` and `1e-3`. The aggregate BER is the arithmetic mean of per-head BER values; it is not BER evaluated at a mean distance. The unknown row is shown separately and is excluded from all three known-head aggregates.
 
 The first-read classifier uses the four measurements after subtracting pooled training means and dividing by pooled training standard deviations. It compares the normalized measurement to each known type's training centroid. The fitter records a per-type unusual-distance threshold from that type's training distances (the 98th percentile plus a small margin, with a minimum floor); no held-out truth is used. Prediction refuses an unsupported label, refuses when another known centroid is closer than the claimed type, and refuses when the claimed centroid is unusually far away. Every refusal states the reason and says to run the full approximate suite. The unknown example is deliberately unusual and is refused under its unsupported label and when inspected under each known label. An unknown family with familiar electrical measurements can escape detection, which is why refusal is a boundary rather than an identity guarantee.
+
+## Recorded seed-0 results
+
+The deterministic seed-0 run records 53 accepted and 26 refused known heads: 53/79, or 67.1%. The unknown family is excluded from every aggregate. The three arithmetic-mean starting results are:
+
+- copy last: L2 `75.6487`, synthetic BER `8.23197e-4`
+- same-type mean: L2 `12.1100`, synthetic BER `2.82977e-4`
+- mapped with fallback: L2 `51.6879`, synthetic BER `7.18910e-4`
+
+Mapped with fallback is 68.3% of copy last's mean L2 distance, which is below the 75% acceptance threshold. Relative to same-type mean, it is 426.8% of the mean L2 distance and 254.1% of the mean BER; that comparison is reported for context, not used as an acceptance requirement. The mapped score includes copy-last starts for all 26 refused known heads.
+
+The fitted mask threshold is `27.693750` register counts. Seed-0 mask results are `laser_up` 9 correct / 3 missed / 0 false positive, `reader_wider` 10 / 2 / 0, `heater_up` 11 / 1 / 0, `zone_od` 9 / 3 / 0, and `zone_id` 10 / 2 / 0. The unknown row refuses under `unknown_family` with `unsupported-label` and refuses under every known claim; the known-label checks return the disagreement or unusual-first-read reasons.
 
 This demo is not real HDD physics.
 
