@@ -44,6 +44,10 @@ function formatBer(value: number): string {
   return value.toExponential(2);
 }
 
+function formatPercent(value: number): string {
+  return `${(value * 100).toFixed(1)}%`;
+}
+
 function formatDistance(value: number): string {
   return value.toFixed(1);
 }
@@ -154,7 +158,7 @@ function scoreBar(label: string, value: number, maximum: number, display: string
   return `
     <div class="score-row">
       <div class="score-label"><span>${escapeHtml(label)}</span><strong>${display}</strong></div>
-      <div class="bar-track" role="img" aria-label="${escapeHtml(label)} ${escapeHtml(display)}"><span class="bar-fill" style="width: ${width.toFixed(1)}%"></span></div>
+      <div class="bar-track" role="img" data-value="${value}" data-scale-max="${maximum}" aria-label="${escapeHtml(label)} ${escapeHtml(display)}"><span class="bar-fill" style="width: ${width.toFixed(1)}%"></span></div>
     </div>`;
 }
 
@@ -170,14 +174,14 @@ function metricMarkup(): string {
 
   return `
     <div class="metric-grid">
-      <section class="metric-card" aria-labelledby="l2-heading">
+      <section class="metric-card" data-metric-group="l2-distance" aria-labelledby="l2-heading">
         <h3 id="l2-heading">Mean starting L2 distance</h3>
-        <p class="metric-unit">register counts · lower is closer to hidden truth</p>
+        <p class="metric-unit">register counts (L2 distance) · lower is closer to hidden truth</p>
         ${strategies.map(([strategy, label]) => scoreBar(label, aggregates[strategy].meanL2Distance, l2Maximum, formatDistance(aggregates[strategy].meanL2Distance))).join("")}
       </section>
-      <section class="metric-card" aria-labelledby="ber-heading">
+      <section class="metric-card" data-metric-group="synthetic-ber" aria-labelledby="ber-heading">
         <h3 id="ber-heading">Mean synthetic starting BER</h3>
-        <p class="metric-unit">arithmetic mean of per-head BER · lower is better</p>
+        <p class="metric-unit">synthetic BER (unitless rate) · arithmetic mean of per-head BER · lower is better</p>
         ${strategies.map(([strategy, label]) => scoreBar(label, aggregates[strategy].meanBer, berMaximum, formatBer(aggregates[strategy].meanBer))).join("")}
       </section>
     </div>`;
@@ -262,6 +266,11 @@ function render(): void {
   const inspection = model.inspectTestHead(selectedRowId, claimedType);
   const knownCount = model.evaluation.knownHeads.length;
   const acceptedCount = model.evaluation.acceptedCount;
+  const aggregates = model.evaluation.aggregates;
+  const sameTypeL2 = aggregates.sameTypeMean.meanL2Distance;
+  const mappedL2 = aggregates.mappedWithFallback.meanL2Distance;
+  const sameTypeBer = aggregates.sameTypeMean.meanBer;
+  const mappedBer = aggregates.mappedWithFallback.meanBer;
 
   app.innerHTML = `
     <header class="site-header">
@@ -284,7 +293,7 @@ function render(): void {
       <section class="control-panel" aria-labelledby="controls-heading">
         <div class="section-heading">
           <div><h2 id="controls-heading">Select an actual held-out row</h2></div>
-          <span class="population">${knownCount} known heads · ${acceptedCount} accepted · ${(model.evaluation.acceptanceRate * 100).toFixed(0)}%</span>
+          <span class="population acceptance-summary" aria-label="Acceptance summary">Acceptance: ${acceptedCount} of ${knownCount} known heads (${formatPercent(model.evaluation.acceptanceRate)})</span>
         </div>
         <div class="controls-grid">
           <label class="control-field" for="head-select"><span>held-out row</span><select id="head-select">${rowOptionMarkup()}</select></label>
@@ -296,13 +305,14 @@ function render(): void {
 
       ${selectedMarkup(inspection)}
 
-      <section class="panel" aria-labelledby="metrics-heading">
+      <section class="panel metrics-panel" aria-labelledby="metrics-heading">
         <div class="section-heading">
           <div><h2 id="metrics-heading">Starting quality on the same ${knownCount} known heads</h2></div>
           <span class="population">unknown family excluded</span>
         </div>
         ${metricMarkup()}
-        <p class="small-note">Refused known heads remain in “mapped with fallback” using copy last. BER is the arithmetic mean of each head’s synthetic BER, not BER evaluated at a mean distance.</p>
+        <p class="small-note">Copy last is the fixed mixed-workload baseline: one completed training recipe reused for every known held-out head. Refused known heads remain in “mapped with fallback” using that copy-last start. Each L2 and BER bar is an arithmetic mean over the same ${knownCount} per-head results; BER is not evaluated at a mean distance.</p>
+        <p class="small-note comparison-note">Compared with same-type mean, mapped with fallback is ${formatPercent(mappedL2 / sameTypeL2)} of its mean L2 distance (${formatDistance(mappedL2)} vs ${formatDistance(sameTypeL2)}) and ${formatPercent(mappedBer / sameTypeBer)} of its mean BER (${formatBer(mappedBer)} vs ${formatBer(sameTypeBer)}). This comparison is descriptive, not an acceptance requirement.</p>
       </section>
 
       <section class="panel" aria-labelledby="mask-summary-heading">

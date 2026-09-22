@@ -184,24 +184,32 @@ describe("synthetic head recipe model", () => {
     const strategies = ["copyLast", "sameTypeMean", "mappedWithFallback"] as const;
 
     expect(evaluation.knownHeads).toHaveLength(79);
+    expect(evaluation.knownHeads.every((head) => head.row.split === "test")).toBe(true);
+    expect(evaluation.knownHeads.every((head) => head.row.changeType !== "unknown_family")).toBe(true);
+    expect(evaluation.knownHeads.map((head) => head.row.id)).toEqual(
+      model.corpus.testRows.filter((row) => row.changeType !== "unknown_family").map((row) => row.id),
+    );
+    expect(evaluation.acceptedCount).toBe(53);
     expect(evaluation.acceptanceRate).toBe(evaluation.acceptedCount / 79);
     for (const strategy of strategies) {
       const aggregate = evaluation.aggregates[strategy];
       expect(aggregate.count).toBe(79);
+      const publicPerHeadResults = evaluation.knownHeads.map((head) => head[strategy]);
       expect(aggregate.meanL2Distance).toBeCloseTo(
-        aggregate.perHead.reduce((sum, head) => sum + head.l2Distance, 0) / 79,
+        publicPerHeadResults.reduce((sum, head) => sum + head.l2Distance, 0) / publicPerHeadResults.length,
         12,
       );
       expect(aggregate.meanBer).toBeCloseTo(
-        aggregate.perHead.reduce((sum, head) => sum + head.ber, 0) / 79,
+        publicPerHeadResults.reduce((sum, head) => sum + head.ber, 0) / publicPerHeadResults.length,
         12,
       );
+      expect(aggregate.perHead).toEqual(publicPerHeadResults);
     }
 
-    const refused = evaluation.knownHeads.find((head) => !head.accepted);
-    expect(refused).toBeDefined();
-    expect(refused!.mappedWithFallback.l2Distance).toBe(refused!.copyLast.l2Distance);
-    expect(refused!.mappedWithFallback.ber).toBe(refused!.copyLast.ber);
+    const refused = evaluation.knownHeads.filter((head) => !head.accepted);
+    expect(refused).toHaveLength(26);
+    expect(refused.every((head) => head.mappedWithFallback.l2Distance === head.copyLast.l2Distance)).toBe(true);
+    expect(refused.every((head) => head.mappedWithFallback.ber === head.copyLast.ber)).toBe(true);
     expect(evaluation.aggregates.mappedWithFallback.meanL2Distance).toBeLessThanOrEqual(
       evaluation.aggregates.copyLast.meanL2Distance * 0.75,
     );
@@ -216,6 +224,20 @@ describe("synthetic head recipe model", () => {
     for (const type of KNOWN_TYPES) {
       expect(model.inspectTestHead(evaluation.unknownExample.row.id, type).proposal.status).toBe("refused");
     }
+
+    const repeated = createDemoModel(0);
+    expect(repeated.evaluation).toEqual(evaluation);
+    expect(repeated.evaluation.aggregates).toEqual(evaluation.aggregates);
+    const proposalSnapshot = (candidate: ReturnType<typeof createDemoModel>) =>
+      candidate.corpus.testRows.flatMap((row) => [
+        candidate.inspectTestHead(row.id).proposal,
+        ...KNOWN_TYPES.map((type) => candidate.inspectTestHead(row.id, type).proposal),
+      ]);
+    expect(proposalSnapshot(repeated)).toEqual(proposalSnapshot(model));
+
+    model.inspectTestHead(model.corpus.testRows[0].id, "laser_up");
+    model.inspectTestHead(model.corpus.testRows[0].id, "unknown_family");
+    expect(model.evaluation).toEqual(evaluation);
   });
 
   it("keeps random selection and held-out truth outside fitting", () => {
