@@ -125,19 +125,22 @@
     <section class="panel" id="step-2" aria-labelledby="title-2" hidden>
       <div class="panel-grid">
         <div>
-          <h2 id="title-2" tabindex="-1">Why keep 80 heads aside?</h2>
-          <p>The demo learns from 320 completed head changes. Each log has the change type, the first electrical readings, and the 12 settings the calibration suite found.</p>
-          <p>It then checks 80 other heads. The model sees their change types and first readings. It suggests a starting recipe or refuses, without seeing the ideal settings the demo made for those heads.</p>
-          <p class="key-point">If the model learned from those 80 answers, it could earn a misleading score. The demo reveals the answers only after the model makes its decisions.</p>
+          <h2 id="title-2" tabindex="-1">What does the model learn from 320 logs?</h2>
+          <p>All 400 heads are made up. Each of the 320 training logs records a change type, four first electrical readings, the final 12 settings from a simulated calibration, and its synthetic BER. Those settings worked in the simulated suite. They are not the perfect answer.</p>
+          <p>A small ML model learns which settings tend to change for each type. It uses the first readings to estimate their values. A type is a label like increased laser power, not a full head configuration.</p>
+          <p>The other 80 heads test the model. Seventy-nine have familiar types; one has a type the model never saw. It gets each claimed type and first readings, but the ideal settings stay hidden until after it suggests a start or refuses. Using those answers to train would give a misleading score.</p>
+          <p class="key-point">Refuse means no mapped starting recipe. The model refuses an unsupported type or readings that disagree with the claim. The lab runs its existing shorter process, called the full approximate suite in this demo.</p>
         </div>
-        <div class="visual" role="img" aria-label="The model learns from 320 completed head changes. It then makes decisions for 80 other heads before the demo reveals their ideal settings.">
-          <p class="visual-title">Learn first, check second</p>
+        <div class="visual" role="img" aria-label="The demo makes 320 synthetic completed calibration logs for the model to learn from. It then checks the model on 80 other heads. The model suggests a starting recipe or refuses before the demo reveals the ideal settings for scoring.">
+          <p class="visual-title">What the model sees</p>
           <div class="example-flow">
-            <div class="example-card training"><strong>320 completed heads</strong><span>Readings and final settings</span><em>Learn how settings change</em></div>
+            <div class="example-card training"><strong>320 fake calibration logs</strong><span>Change type + first readings + final recipe</span><em>Examples for learning</em></div>
             <div class="flow-arrow" aria-hidden="true"></div>
-            <div class="example-card"><strong>80 unseen heads</strong><span>Change type and first readings only</span><em>Decide, then check the hidden settings</em></div>
+            <div class="example-card"><strong>Small ML model</strong><span>Which settings move for each type?</span><em>Estimate a starting recipe</em></div>
+            <div class="flow-arrow" aria-hidden="true"></div>
+            <div class="example-card"><strong>80 new fake heads</strong><span>79 familiar types + 1 unseen type</span><em>Suggest or refuse before seeing the ideal recipe</em></div>
           </div>
-          <p class="visual-note">Eighty is a demo choice, not a BER testing rule. The group has 79 known heads and one head from an unknown family.</p>
+          <p class="visual-note">The 80 are kept out of learning so the demo can check how the model handles new heads. Eighty is a demo choice, not a BER testing rule.</p>
         </div>
       </div>
     </section>

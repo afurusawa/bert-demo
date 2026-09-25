@@ -10,8 +10,9 @@ test("walkthrough explains the model and links back to the demo", async ({ page 
   await expect(page.getByRole("link", { name: "Try the demo" })).toBeHidden();
 
   await page.getByRole("button", { name: "Next step" }).click();
-  await expect(page.getByRole("heading", { name: "Why keep 80 heads aside?" })).toBeVisible();
-  await expect(page.getByText("If the model learned from those 80 answers", { exact: false })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "What does the model learn from 320 logs?" })).toBeVisible();
+  await expect(page.getByText("Those settings worked in the simulated suite.", { exact: false })).toBeVisible();
+  await expect(page.getByText("Refuse means no mapped starting recipe.", { exact: false })).toBeVisible();
   await page.getByRole("button", { name: "Step 3: Check" }).click();
   await expect(page.getByRole("heading", { name: "Do the first readings fit the change type?" })).toBeVisible();
   await page.getByRole("button", { name: "Step 4: Propose" }).click();
