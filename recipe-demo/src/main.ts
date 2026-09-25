@@ -279,7 +279,7 @@ function render(): void {
           <p class="eyebrow">Synthetic calibration recipe</p>
           <h1>Inspect head changes before the suite runs</h1>
         </div>
-        <div class="header-actions"><a class="guide-link" href="/walkthrough.html">How it works</a><span class="header-badge">SEED 0 · OFFLINE</span></div>
+        <div class="header-actions"><a class="guide-link" href="./walkthrough.html">How it works</a><span class="header-badge">SEED 0 · OFFLINE</span></div>
       </div>
     </header>
     <div class="notice"><div class="page-width"><strong>Synthetic data.</strong> This is a readable model boundary for inspecting hidden rules, learned rules, baselines, and refusal cases.</div></div>
