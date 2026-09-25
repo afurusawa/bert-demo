@@ -10,7 +10,8 @@ test("walkthrough explains the model and links back to the demo", async ({ page 
   await expect(page.getByRole("link", { name: "Try the demo" })).toBeHidden();
 
   await page.getByRole("button", { name: "Next step" }).click();
-  await expect(page.getByRole("heading", { name: "The demo learns from completed logs" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Keep some heads aside for an honest check" })).toBeVisible();
+  await expect(page.getByText("If the model learned from those 80 ideal settings", { exact: false })).toBeVisible();
   await page.getByRole("button", { name: "Step 3: Check" }).click();
   await expect(page.getByRole("heading", { name: "First, check whether its story fits" })).toBeVisible();
   await page.getByRole("button", { name: "Step 4: Propose" }).click();
@@ -27,6 +28,9 @@ test("walkthrough explains the model and links back to the demo", async ({ page 
 test("walkthrough stays readable at a narrow viewport", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/walkthrough.html");
+  await page.getByRole("button", { name: "Step 2: Learn" }).click();
+  await expect(page.getByText("The choice of 80 is for this demo", { exact: false })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.getByRole("button", { name: "Step 5: Compare" }).click();
 
   await expect(page.getByRole("heading", { name: "Compare starts with the hidden answer" })).toBeVisible();

@@ -43,11 +43,13 @@
     .flow-box.good { background: #dcefe5; border-color: #286c4e; }
     .flow-box.caution { background: #f3dfdb; border-color: #8b3e32; }
     .flow-box small { display: block; font-size: .9375rem; font-weight: 400; }
-    .corpus { display: grid; grid-template-columns: 4fr 1fr; gap: 8px; }
-    .corpus div { min-height: 110px; padding: 16px; background: #dcebed; border: 1px solid #315d68; }
-    .corpus div:last-child { background: #fff; }
-    .corpus strong { display: block; font-size: 1.6875rem; line-height: 1.3; }
-    .corpus span { display: block; font-size: .9375rem; }
+    .example-flow { display: grid; gap: 8px; }
+    .example-card { padding: 16px; background: #fff; border: 1px solid #7d8a89; }
+    .example-card.training { background: #dcebed; border-color: #315d68; }
+    .example-card strong, .example-card span { display: block; }
+    .example-card strong { font-size: 1.4375rem; line-height: 1.3; }
+    .example-card span { margin-top: 4px; font-size: 1rem; }
+    .example-card em { display: block; margin-top: 12px; font-size: .9375rem; font-style: normal; font-weight: 700; }
     .visual-note { margin: 14px 0 0 !important; font-size: .9375rem; color: #43514f; }
     .signal-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
     .signal-grid div { padding: 12px; background: #fff; border: 1px solid #7d8a89; }
@@ -111,7 +113,7 @@
         <div>
           <p class="eyebrow">The lab process</p>
           <h2 id="title-1" tabindex="-1">A changed head needs calibration</h2>
-          <p>A recording head writes bits and reads them back. After a head change, the lab adjusts 12 chip settings, called registers, until the bit error rate is acceptable.</p>
+          <p>A recording head writes bits and reads them back. After a head change, the lab adjusts 12 chip settings, called registers, until the bit error rate (BER) is acceptable.</p>
           <p>The final settings are a <strong>recipe</strong>. A lower bit error rate means fewer bits came back wrong.</p>
           <p class="key-point">A starting recipe is only the first guess. The calibration suite still has to qualify it.</p>
         </div>
@@ -126,15 +128,19 @@
       <div class="panel-grid">
         <div>
           <p class="eyebrow">Past examples</p>
-          <h2 id="title-2" tabindex="-1">The demo learns from completed logs</h2>
-          <p>Each old log says what kind of head change happened, what the first electrical read showed, and which 12 settings the suite finished with.</p>
-          <p>The demo learns a shared base recipe, which registers usually move for each change type, and small rules connecting the first read to those moving settings.</p>
-          <p class="key-point">The 80 test heads stay out of learning. Their hidden answers appear later only for comparison.</p>
+          <h2 id="title-2" tabindex="-1">Keep some heads aside for an honest check</h2>
+          <p>The demo learns from 320 past heads. For each, it sees the change type, the first electrical readings, and the 12 settings the calibration suite finished with.</p>
+          <p>It then checks 80 separate heads. The model sees each head's type and first readings, then either suggests starting settings or refuses. The demo invented ideal settings for each head and keeps them hidden during that decision.</p>
+          <p class="key-point">If the model learned from those 80 ideal settings, its score could look better than it would on new heads. The demo reveals them afterward to score the known heads and inspect the unknown one.</p>
         </div>
-        <div class="visual" role="img" aria-label="The synthetic corpus has 320 training logs and 80 separate test heads.">
-          <p class="visual-title">Synthetic examples</p>
-          <div class="corpus"><div><strong>320</strong><span>past logs used to learn</span></div><div><strong>80</strong><span>test heads kept aside</span></div></div>
-          <p class="visual-note">The test set contains 79 known-type heads and one unknown-family head.</p>
+        <div class="visual" role="img" aria-label="The model learns from 320 completed head logs. It then makes decisions for 80 separate heads before their ideal settings are revealed for scoring.">
+          <p class="visual-title">Learn first, check second</p>
+          <div class="example-flow">
+            <div class="example-card training"><strong>320 past heads</strong><span>First readings + final settings</span><em>Learn which settings to suggest</em></div>
+            <div class="flow-arrow" aria-hidden="true"></div>
+            <div class="example-card"><strong>80 test heads</strong><span>Type and first readings shown; ideal settings hidden</span><em>Decide first, then check the result</em></div>
+          </div>
+          <p class="visual-note">The choice of 80 is for this demo, not a BER testing rule. The group has 79 known-type heads and one unknown-family head.</p>
         </div>
       </div>
     </section>
