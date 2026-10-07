@@ -145,6 +145,9 @@ function AppShell({ children }: { children: React.ReactNode }) {
             >
               Diagnosis
             </a>
+            <a className="nav-link" href="/head-calibration/index.html">
+              Head calibration
+            </a>
           </nav>
           <div className="topbar-status">
             <span className="status-dot" aria-hidden="true" />

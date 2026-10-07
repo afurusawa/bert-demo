@@ -28,8 +28,11 @@ npm run build
 - `/comparison` — the fixed baseline lane 3 versus later-unit lane 3 comparison
 - `/diagnosis` — the diagnostic model, fitted in the browser from the labelled cases
 - `/diagnosis/method` — diagrams and prose on how the model is built and where it fails
+- `/head-calibration/index.html` — the synthetic head calibration recipe demo
+- `/head-calibration/walkthrough.html` — a visual guide to the recipe demo
 
 The routes are ordinary shareable URLs. Vercel rewrites the run, comparison, and diagnosis paths to the static entry point so direct refreshes resolve to the app.
+The root `dev` and `build` commands also build `recipe-demo/` into `public/head-calibration/`. Select **Head calibration** in the top navigation to open it.
 
 ## Synthetic physical model
 

@@ -4,9 +4,12 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "predev": "npm run build:calibration",
     "dev": "vite",
     "preview": "vite preview",
+    "prebuild": "npm run build:calibration",
     "build": "tsc -b && vite build",
+    "build:calibration": "tsc --noEmit -p recipe-demo/tsconfig.json && vite build recipe-demo --base /head-calibration/ --outDir ../public/head-calibration --emptyOutDir",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",

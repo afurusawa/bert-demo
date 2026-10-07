@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="How the head calibration demo learns from old results and checks its starting recipes.">
+  <title>How the head calibration demo works</title>
+  <style>
+    :root { color-scheme: light; font-family: "IBM Plex Sans", system-ui, sans-serif; color: #192326; background: #f4f6f5; }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; font-size: 1.1875rem; line-height: 1.5; }
+    button, a { font: inherit; }
+    button:focus-visible, a:focus-visible { outline: 3px solid #173d46; outline-offset: 3px; }
+    .shell { width: min(1120px, calc(100% - 48px)); margin: auto; }
+    header { background: #fff; border-bottom: 1px solid #7d8a89; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 96px; padding: 18px 0; }
+    .brand { font-size: .9375rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #315d68; }
+    .demo-link { color: #173d46; font-weight: 700; text-underline-offset: 3px; }
+    main { padding: 48px 0 72px; }
+    .eyebrow { margin: 0 0 8px; color: #43514f; font-size: .9375rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+    h1 { margin: 0; max-width: 800px; font-size: clamp(2.0625rem, 4vw, 2.4375rem); line-height: 1.3; }
+    .lead { max-width: 780px; margin: 18px 0 32px; font-size: 1.4375rem; }
+    .progress-label { margin: 0 0 12px; font-size: .9375rem; font-weight: 700; color: #43514f; }
+    .steps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin: 0 0 24px; padding: 0; list-style: none; }
+    .step-button { width: 100%; min-height: 74px; padding: 10px 12px; border: 1px solid #7d8a89; background: #fff; color: #192326; text-align: left; line-height: 1.25; }
+    .step-button[aria-current="step"] { border: 2px solid #315d68; background: #dcebed; }
+    .step-number { display: block; margin-bottom: 4px; font-size: .9375rem; font-weight: 700; color: #315d68; }
+    .panel { min-height: 480px; padding: clamp(24px, 4vw, 48px); background: #fff; border: 1px solid #7d8a89; }
+    .panel[hidden] { display: none; }
+    .panel-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 1fr); align-items: center; gap: 48px; }
+    h2 { margin: 0 0 16px; font-size: clamp(1.6875rem, 3vw, 2.0625rem); line-height: 1.3; }
+    h3 { margin: 0 0 8px; font-size: 1.1875rem; }
+    .panel p { max-width: 590px; margin: 0 0 16px; }
+    .panel p:last-child { margin-bottom: 0; }
+    .key-point { margin-top: 28px !important; padding-left: 16px; border-left: 4px solid #315d68; font-weight: 700; }
+    .visual { padding: 24px; background: #edf1f0; }
+    .visual-title { margin: 0 0 16px !important; font-size: .9375rem; font-weight: 700; color: #43514f; text-transform: uppercase; letter-spacing: .04em; }
+    .flow { display: grid; gap: 8px; }
+    .flow-box { padding: 14px 16px; background: #fff; border: 1px solid #7d8a89; font-weight: 700; }
+    .flow-arrow { height: 26px; margin-left: 20px; border-left: 3px solid #315d68; position: relative; }
+    .flow-arrow::after { content: ""; position: absolute; bottom: 0; left: -7px; border: 6px solid transparent; border-top-color: #315d68; transform: translateY(6px); }
+    .flow-box.good { background: #dcefe5; border-color: #286c4e; }
+    .flow-box.caution { background: #f3dfdb; border-color: #8b3e32; }
+    .flow-box small { display: block; font-size: .9375rem; font-weight: 400; }
+    .example-flow { display: grid; gap: 8px; }
+    .example-card { padding: 16px; background: #fff; border: 1px solid #7d8a89; }
+    .example-card.training { background: #dcebed; border-color: #315d68; }
+    .example-card strong, .example-card span { display: block; }
+    .example-card strong { font-size: 1.4375rem; line-height: 1.3; }
+    .example-card span { margin-top: 4px; font-size: 1rem; }
+    .example-card em { display: block; margin-top: 12px; font-size: .9375rem; font-style: normal; font-weight: 700; }
+    .visual-note { margin: 14px 0 0 !important; font-size: .9375rem; color: #43514f; }
+    .signal-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .signal-grid div { padding: 12px; background: #fff; border: 1px solid #7d8a89; }
+    .signal-grid strong { display: block; }
+    .signal-grid span { font-size: .9375rem; color: #43514f; }
+    .branch { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .branch div { padding: 16px; min-height: 150px; }
+    .branch .yes { background: #dcefe5; border: 1px solid #286c4e; }
+    .branch .no { background: #f3dfdb; border: 1px solid #8b3e32; }
+    .branch strong, .branch span { display: block; }
+    .branch span { margin-top: 8px; font-size: 1rem; }
+    .bars { display: grid; gap: 16px; }
+    .bar-label { display: flex; justify-content: space-between; gap: 12px; font-size: 1rem; }
+    .track { height: 24px; margin-top: 5px; background: #d1dcda; }
+    .fill { display: block; height: 100%; background: #315d68; }
+    .bar-row.best .fill { background: #286c4e; }
+    .panel-actions { display: flex; justify-content: space-between; gap: 12px; margin-top: 20px; }
+    .nav-button, .primary-link { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 9px 18px; border: 1px solid #315d68; background: #fff; color: #173d46; font-weight: 700; text-decoration: none; }
+    .nav-button.next, .primary-link { margin-left: auto; background: #315d68; color: #fff; }
+    .footer-note { max-width: 850px; margin: 28px 0 0; color: #43514f; font-size: 1rem; }
+    @media (max-width: 760px) {
+      .shell { width: min(100% - 28px, 1120px); }
+      main { padding-top: 32px; }
+      .steps { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+      .step-button { min-height: 74px; padding: 8px; font-size: .9375rem; }
+      .step-number { font-size: .9375rem; }
+      .panel { min-height: 0; }
+      .panel-grid { grid-template-columns: 1fr; gap: 24px; }
+      .visual { padding: 18px; }
+      .lead { font-size: 1.1875rem; }
+    }
+    @media (max-width: 430px) {
+      .topbar { align-items: flex-start; flex-direction: column; gap: 4px; }
+      .branch { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="shell topbar">
+      <div class="brand">Synthetic head recipe inspection</div>
+      <a class="demo-link" href="./index.html">Open the demo</a>
+    </div>
+  </header>
+  <main class="shell">
+    <h1>How the demo picks a starting recipe</h1>
+    <p class="lead">After a head change, the lab needs new chip settings. The demo uses past calibration results to suggest where to start.</p>
+
+    <p class="progress-label" id="progress-label" aria-live="polite">Step 1 of 5</p>
+    <ol class="steps" aria-label="Walkthrough steps">
+      <li><button class="step-button" type="button" data-step="0" aria-current="step" aria-label="Step 1: Calibrate"><span class="step-number">01</span>Calibrate</button></li>
+      <li><button class="step-button" type="button" data-step="1" aria-label="Step 2: Learn"><span class="step-number">02</span>Learn</button></li>
+      <li><button class="step-button" type="button" data-step="2" aria-label="Step 3: Check"><span class="step-number">03</span>Check</button></li>
+      <li><button class="step-button" type="button" data-step="3" aria-label="Step 4: Propose"><span class="step-number">04</span>Propose</button></li>
+      <li><button class="step-button" type="button" data-step="4" aria-label="Step 5: Compare"><span class="step-number">05</span>Compare</button></li>
+    </ol>
+
+    <section class="panel" id="step-1" aria-labelledby="title-1">
+      <div class="panel-grid">
+        <div>
+          <h2 id="title-1" tabindex="-1">A changed head needs calibration</h2>
+          <p>After changing a recording head, the lab writes bits and reads them back. It adjusts 12 chip settings, called registers, until the bit error rate, or BER, is low enough.</p>
+          <p>The final settings are a <strong>recipe</strong>. A lower BER means fewer bits came back wrong.</p>
+          <p class="key-point">The demo can suggest a starting recipe. The lab still runs the calibration suite to see whether it works.</p>
+        </div>
+        <div class="visual" role="img" aria-label="After a head change, the lab writes and reads bits, adjusts registers, and saves the settings that produce low enough BER.">
+          <p class="visual-title">What the suite does</p>
+          <div class="flow"><div class="flow-box">Change the head</div><div class="flow-arrow"></div><div class="flow-box">Write, read, adjust settings</div><div class="flow-arrow"></div><div class="flow-box good">Save the recipe<small>12 settings with low enough BER</small></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="step-2" aria-labelledby="title-2" hidden>
+      <div class="panel-grid">
+        <div>
+          <h2 id="title-2" tabindex="-1">What does the model learn from 320 logs?</h2>
+          <p>All 400 heads are made up. Each of the 320 training logs records a change type, four first electrical readings, the final 12 settings from a simulated calibration, and its synthetic BER. Those settings worked in the simulated suite. They are not the perfect answer.</p>
+          <p>A small ML model learns which settings tend to change for each type. It uses the first readings to estimate their values. A type is a label like increased laser power, not a full head configuration.</p>
+          <p>The other 80 heads test the model. Seventy-nine have familiar types; one has a type the model never saw. It gets each claimed type and first readings, but the ideal settings stay hidden until after it suggests a start or refuses. Using those answers to train would give a misleading score.</p>
+          <p class="key-point">Refuse means no mapped starting recipe. The model refuses an unsupported type or readings that disagree with the claim. The lab runs its existing shorter process, called the full approximate suite in this demo.</p>
+        </div>
+        <div class="visual" role="img" aria-label="The demo makes 320 synthetic completed calibration logs for the model to learn from. It then checks the model on 80 other heads. The model suggests a starting recipe or refuses before the demo reveals the ideal settings for scoring.">
+          <p class="visual-title">What the model sees</p>
+          <div class="example-flow">
+            <div class="example-card training"><strong>320 fake calibration logs</strong><span>Change type + first readings + final recipe</span><em>Examples for learning</em></div>
+            <div class="flow-arrow" aria-hidden="true"></div>
+            <div class="example-card"><strong>Small ML model</strong><span>Which settings move for each type?</span><em>Estimate a starting recipe</em></div>
+            <div class="flow-arrow" aria-hidden="true"></div>
+            <div class="example-card"><strong>80 new fake heads</strong><span>79 familiar types + 1 unseen type</span><em>Suggest or refuse before seeing the ideal recipe</em></div>
+          </div>
+          <p class="visual-note">The 80 are kept out of learning so the demo can check how the model handles new heads. Eighty is a demo choice, not a BER testing rule.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="step-3" aria-labelledby="title-3" hidden>
+      <div class="panel-grid">
+        <div>
+          <h2 id="title-3" tabindex="-1">Do the first readings fit the change type?</h2>
+          <p>Before calibration, the tester records four electrical readings. The model checks whether they resemble past heads with the claimed change type.</p>
+          <p>It refuses to suggest settings if the type is unknown, the readings look more like another type, or they are unusually different from past heads of that type.</p>
+          <p class="key-point">Passing this check lets the model offer starting settings. The calibration suite still has to test them.</p>
+        </div>
+        <div class="visual" role="img" aria-label="The model compares four first readings with past heads of the claimed change type.">
+          <p class="visual-title">What the model sees first</p>
+          <div class="signal-grid"><div><strong>Amplitude</strong><span>amp</span></div><div><strong>Signal quality</strong><span>snr</span></div><div><strong>Timing error</strong><span>timing_error</span></div><div><strong>Asymmetry</strong><span>asy</span></div></div>
+          <p class="visual-note">Change the claimed type in the demo. These four readings stay the same.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="step-4" aria-labelledby="title-4" hidden>
+      <div class="panel-grid">
+        <div>
+          <h2 id="title-4" tabindex="-1">Suggest settings or run the existing suite</h2>
+          <p>The demo calls its learned rule a map. When the readings fit the claimed type, the map adjusts registers that usually move for that type. It fills the others with shared base values. Together, the 12 values make a starting recipe.</p>
+          <p>When the check fails, the demo gives no mapped start. It tells the lab to run the full approximate suite, the shorter calibration process it already uses.</p>
+          <p class="key-point">A skipped register gets the shared base value. It does not keep the value from the last head.</p>
+        </div>
+        <div class="visual" role="img" aria-label="If the check passes, the model offers starting settings for the lab to test. If it fails, the demo gives no mapped settings and calls for the full approximate suite.">
+          <p class="visual-title">What happens next</p>
+          <div class="branch"><div class="yes"><strong>Check passes</strong><span>Offer starting settings. Test them in the suite.</span></div><div class="no"><strong>Check fails</strong><span>Give no mapped settings. Run the full approximate suite.</span></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="step-5" aria-labelledby="title-5" hidden>
+      <div class="panel-grid">
+        <div>
+          <h2 id="title-5" tabindex="-1">Which start came closest?</h2>
+          <p>For each invented head, the demo knows an ideal recipe. The bars show how far each starting method landed from it, averaged over the same 79 known heads. Shorter bars mean closer settings.</p>
+          <p>Averaging past recipes for the same change type works best here. The learned map offered starts for 53 heads. For the other 26, the demo scored a copy of the last completed recipe.</p>
+          <p class="key-point">These bars score starting guesses in the demo. The calibration suite has to test a real head.</p>
+        </div>
+        <div class="visual" role="img" aria-label="Average distance from ideal settings across 79 heads. Copy last scores 75.6, mapped with fallback 51.7, and same-type mean 12.1. Lower is closer.">
+          <p class="visual-title">Average distance from ideal settings</p>
+          <div class="bars">
+            <div class="bar-row"><div class="bar-label"><span>Copy last</span><strong>75.6</strong></div><div class="track"><span class="fill" style="width:100%"></span></div></div>
+            <div class="bar-row"><div class="bar-label"><span>Mapped with fallback</span><strong>51.7</strong></div><div class="track"><span class="fill" style="width:68.3%"></span></div></div>
+            <div class="bar-row best"><div class="bar-label"><span>Same-type mean</span><strong>12.1</strong></div><div class="track"><span class="fill" style="width:16%"></span></div></div>
+          </div>
+          <p class="visual-note">The demo calls this L2 distance. It combines the gaps across all 12 settings. Zero means an exact match.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="panel-actions">
+      <button class="nav-button" id="previous" type="button" hidden>Previous step</button>
+      <button class="nav-button next" id="next" type="button">Next step</button>
+      <a class="primary-link" id="open-demo" href="./index.html" hidden>Try the demo</a>
+    </div>
+    <p class="footer-note">The heads and BER values here are invented. No instrument is connected, and the demo cannot qualify a real head.</p>
+  </main>
+  <script>
+    const buttons = [...document.querySelectorAll('.step-button')];
+    const panels = [...document.querySelectorAll('.panel')];
+    const previous = document.getElementById('previous');
+    const next = document.getElementById('next');
+    const openDemo = document.getElementById('open-demo');
+    const progress = document.getElementById('progress-label');
+    let step = 0;
+
+    function showStep(index, focusHeading = false) {
+      step = Math.max(0, Math.min(index, panels.length - 1));
+      buttons.forEach((button, position) => {
+        if (position === step) button.setAttribute('aria-current', 'step');
+        else button.removeAttribute('aria-current');
+      });
+      panels.forEach((panel, position) => { panel.hidden = position !== step; });
+      progress.textContent = `Step ${step + 1} of ${panels.length}`;
+      previous.hidden = step === 0;
+      next.hidden = step === panels.length - 1;
+      openDemo.hidden = step !== panels.length - 1;
+      if (focusHeading) panels[step].querySelector('h2').focus();
+    }
+
+    buttons.forEach((button, index) => button.addEventListener('click', () => showStep(index, true)));
+    previous.addEventListener('click', () => showStep(step - 1, true));
+    next.addEventListener('click', () => showStep(step + 1, true));
+  </script>
+</body>
+</html>
