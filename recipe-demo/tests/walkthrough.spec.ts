@@ -23,7 +23,7 @@ test("walkthrough explains the model and links back to the demo", async ({ page 
   await expect(page.getByRole("link", { name: "Try the demo" })).toBeVisible();
 
   await page.getByRole("link", { name: "Try the demo" }).click();
-  await expect(page.getByRole("heading", { name: "Inspect head changes before the suite runs" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "What should we do with this head?" })).toBeVisible();
 });
 
 test("walkthrough stays readable at a narrow viewport", async ({ page }) => {
